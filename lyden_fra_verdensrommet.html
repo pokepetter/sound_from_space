@@ -1,0 +1,51 @@
+<html><title>Lyden fra verdensrommet</title><body>
+<script src="/taptapir/taptapir.js"></script>
+<script type='text/sunsnake'>
+
+set_orientation('horizontal')
+set_background_color('#000')
+set_window_color('#111')
+
+
+title_screen = Scene(name='title_screen', texture='lyden_fra_verdensrommet_banner.png')
+
+space = Scene(name='space', texture='stars.png')
+
+sun_scene = Scene(name='sun_scene', texture='stars.png')
+sun = Entity(parent=sun_scene, texture='sun_bloom.gif', scale=16/9, y=.39)
+sun_scene.on_enable = def():
+    print('goto sun')
+    sun.animate('y', -.15, duration=30)
+
+europa_scene = Scene(texture='stars.png')
+europa = Entity(parent=europa_scene, texture='europa.jpg', scale_x=16/9*.3, scale_y=.3)
+europa_scene.on_enable = def():
+    print('europa')
+    europa.y = -.15
+    duration= 30
+    europa.animate('y', 0, duration=duration)
+    europa.animate('scale_x', 16/9, duration=duration)
+    europa.animate('scale_y', 1, duration=duration)
+    b = Button(parent=europa_scene, text='EUROPA', z=-10, text_color=color.light_gray, color=color.clear)
+
+
+goto_scene(title_screen)
+
+def input(key):
+    # print(key)
+    if key == '1':
+        goto_scene(title_screen)
+    elif key == '2':
+        goto_scene(space)
+    elif key == '3':
+        goto_scene(sun_scene)
+    elif key == '4':
+        goto_scene(europa_scene)
+
+
+
+
+
+print('a')
+</script>
+<script src="/taptapir/sunsnake_compiler.js"></script>

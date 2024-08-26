@@ -1,0 +1,23 @@
+Time Estimate
+Scene					Sketch	Polish	Animation	Total
+Space ship interior			2+2	4			4
+space + sun				2	3			5
+sun closeup						1		1
+animated asteroid field as video	3	2	4		9
+asteroid field attack			1	1	2		4
+white noise				1	1
+Europa, moon 				1	2			3
+Blue underwater planet, muddy		2	4			6
+Aliens in background			1		5		6
+Hyperjump animation			8	8
+MIXOLYDIA CENTAURI			2	6			8
+alien design				1+1	2			2
+alien scene				2	2	6		10
+Pale blue dot				1	1			2
+Terra sunrise				3	3	6		12
+Space. Empty				1	1			2
+				
+Planning / Communication						8
+IRL Testing								4
+				
+Total									95
