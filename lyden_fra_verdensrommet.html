@@ -17,8 +17,11 @@ sun_scene.on_enable = def():
     print('goto sun')
     sun.animate('y', -.15, duration=30)
 
-europa_scene = Scene(texture='stars.png')
-europa = Entity(parent=europa_scene, texture='europa.jpg', scale_x=16/9*.3, scale_y=.3)
+asteroid_scene = Scene(name='asteroid_scene', texture='stars_2.jpg')
+asteroid_belt = Entity(parent=asteroid_scene, texture='asteroid_belt.png', scale=16/9)
+
+europa_scene = Scene(texture='stars_2.jpg')
+europa = Entity(parent=europa_scene, texture='europa.png', scale_x=16/9*.3, scale_y=.3)
 europa_scene.on_enable = def():
     print('europa')
     europa.y = -.15
@@ -28,9 +31,44 @@ europa_scene.on_enable = def():
     europa.animate('scale_y', 1, duration=duration)
     b = Button(parent=europa_scene, text='EUROPA', z=-10, text_color=color.light_gray, color=color.clear)
 
+underwater_scene = Scene(name='underwater_scene', texture='underwater.png')
+
+noise_scene = Scene(name='static', texture='vhs_noise.gif')
+
+pale_blue_dot_scene = Scene(name='pale_blue_dot', texture='pale_blue_dot.jpg')
+terra = Scene(name='terra', texture='terra.png')
+hyperjump = Scene(name='hyperjump', texture='speed.gif')
 
 goto_scene(title_screen)
 
+scenes = [
+title_screen,
+noise_scene,
+space, 
+
+sun_scene, 
+hyperjump,
+
+asteroid_scene, 
+# Asteroid field “attack”
+europa_scene, 
+noise_scene,
+underwater_scene,
+
+hyperjump,
+noise_scene, 
+# MIXOLYDIA CENTAURI
+# nterference/white noise
+# Alien face!
+# entral star “exploding” 
+# Many moons appearing. MANY! 
+pale_blue_dot_scene, 
+hyperjump,
+terra, 
+# NASO-logo.
+# Logo backwall
+]
+i = -1
 def input(key):
     # print(key)
     if key == '1':
@@ -40,10 +78,24 @@ def input(key):
     elif key == '3':
         goto_scene(sun_scene)
     elif key == '4':
+        goto_scene(asteroid_scene)
+
+    elif key == '5':
         goto_scene(europa_scene)
+    elif key == '6':
+        goto_scene(underwater_scene)
 
+    elif key == '7':
+        goto_scene(noise_scene, False)
+    elif key == '8':
+        goto_scene(pale_blue_dot_scene, False)
+    elif key == '9':
+        goto_scene(hyperjump)
 
-
+    if key == 'space':
+        print('goto next scene')
+        i += 1
+        goto_scene(scenes[i])
 
 
 print('a')
