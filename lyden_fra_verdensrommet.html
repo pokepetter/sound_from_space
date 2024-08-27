@@ -16,15 +16,17 @@ space_scene.on_enable = def():
     space.enabled = True
 
 space_scene.update = def():
-    space.texture_offset = [space.texture_offset[0]-.1, space.texture_offset[1]-.1]
+    space.texture_offset = [space.texture_offset[0]-.00005, space.texture_offset[1]-.00005]
     # print(space.texture_offset)
 
 
 sun_scene = Scene(name='sun_scene', texture='stars.png')
-sun = Entity(parent=sun_scene, texture='sun_bloom.gif', scale=16/9, y=.39)
+sun = Entity(parent=sun_scene, texture='sun_bloom.gif', scale=16/9)
 sun_scene.on_enable = def():
     print('goto sun')
+    sun.y = .39
     sun.animate('y', -.15, duration=30)
+    show_text(title='Sol', description='', character_duration=.2)
 
 asteroid_scene = Scene(name='asteroid_scene', texture='stars_2.jpg')
 asteroid_belt = Entity(parent=asteroid_scene, texture='asteroid_belt.png', scale=16/9)
@@ -40,7 +42,8 @@ europa_scene.on_enable = def():
     europa.animate('y', 0, duration=duration)
     # europa.animate('scale_x', 16/9, duration=duration)
     # europa.animate('scale_y', 1, duration=duration)
-    b = Button(parent=europa_scene, text='EUROPA', z=-10, text_color=color.light_gray, color=color.clear)
+    show_text(title='Europa', description='Gjennomsnittsfart\n13,74 km/s\nInklinasjon	0,47°\nModerplanet	Jupiter', character_duration=.05)
+    # b = Button(parent=europa_scene, text='EUROPA', z=-10, text_color=color.light_gray, color=color.clear)
 
 underwater_scene = Scene(name='underwater_scene', texture='underwater.png')
 
@@ -49,6 +52,8 @@ mixolydia_centauri_scene = Scene(name='MIXOLYDIA_CENTAURI', texture='mixolydia_c
 Entity(parent=mixolydia_centauri_scene, scale=.2, text='mixolydia_centauri').fit_to_text()
 mixolydia_centauri_scene.on_enable = def():
     hyperjump.enabled = True
+    after 6s:
+        show_text(title='Mixolydia Centauri', description='Alder ???år\nAntall planeter ???\nStjerner ???\nLiv ???\nOrbital hastighet 720 000 km/t\nOmløpsperiode ~230 millioner år', character_duration=.05)
 
 #  nterference/white noise
 alien_scene = Scene(name='alien', texture='alien')
@@ -68,8 +73,8 @@ terra = Entity(parent=terra_scene, texture='terra.png', scale_x=16/9)
 terra_scene.on_enable = def():
     hyperjump.enabled = True
     terra.y = -.5
-    after 3s:
-        terra.animate('y', 0, duration=20)
+    after 6s:
+        terra.animate('y', 0, duration=50)
 
 # hyperjump_scene = Scene(name='hyperjump', texture='')
 hyperjump = Entity(enabled=False, texture='hyperjump.gif', scale_x=16/9)
@@ -86,6 +91,41 @@ hyperjump.on_enable = def():
         white_cover.animate('alpha', 0, duration=5)
     # after 10s:
     #     hyperjump.enabled = False
+
+load_font('Orbitron-Black')
+title_text = Button(font='Orbitron-Black', text='Terra', text_origin=[-.5,-.5], origin=[-.5,.5], text_size=8, text_color=color.cyan, color=color.clear, x=-(16/9*.5)+.1, y=.4, scale_x=1)
+title_text.model.style.textDecoration = 'underline'
+
+description_text = Button(font='Orbitron-Black', text_origin=[-.5,.5], text_size=2, text='6 000 000 000km', text_color=color.cyan, color=color.clear, x=title_text.x, y=title_text.y-.2, origin=[-.5,.5], scale_x=.6, scale_y=.7)
+title_text.text = ''
+description_text.text = ''
+
+reset_text_routine = None
+def show_text(title='', description='', character_duration=.05, duration=4):
+    title = title.split('')
+    description = description.split('')
+    if reset_text_routine:
+        stop_invoke(reset_text_routine)
+        reset_text_routine = None
+
+    title_text.text = ''
+    description_text.text = ''
+    for i, e in title:
+        after i*character_duration:
+            title_text.text += e
+    for i, e in description:
+        after i*character_duration:
+            description_text.text += e
+    
+    total_duration = max(len(title)*character_duration, len(description)*character_duration) + duration
+    print('------|||||||||||', total_duration)
+    reset_text_routine = invoke(reset_text, delay=total_duration)
+
+def reset_text():
+    title_text.text = ''
+    description_text.text = ''
+    
+
 
 goto_scene(title_screen)
 
