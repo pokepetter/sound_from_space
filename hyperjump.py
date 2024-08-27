@@ -22,20 +22,26 @@ from ursina.shaders import fxaa_shader
 camera.shader = fxaa_shader
 
 # def input(key):
-    
+def skip_time(dt=1/60):
+    for seq in application.sequences:
+        seq.t += dt
+        seq.started = True
+        seq.update()
+        seq.started = False
 
 class Helper(Entity):
     def __init__(self):
         super().__init__(ignore_paused=True)
 
     def input(self, key):
-        if key == 'right arrow':
-            time.dt = 1/30
-            # app.update()
-            print('aa')
+        if key == 'right arrow' or key == 'right arrow hold':
+            skip_time(1/30)
+        # if key == 'left arrow' or key == 'left arrow hold':
+        #     skip_time(-1/60)
 
         if key == 'space':
-            camera.animate('fov', 200, duration=3)
+            print('start')
+            camera.animate('fov', 200, duration=3, curve=curve.linear)
 
             star_parent.animate_z(-1, duration=2)
             star_parent.animate_scale_z(1000, duration=2, curve=curve.linear)
@@ -49,7 +55,13 @@ class Helper(Entity):
             star_clone.animate('rotation_z', 1000, duration=1, delay=2)
             bg.fade_out(duration=.1)
 
+            from ursina.prefabs.video_recorder import VideoRecorder
+            vr = VideoRecorder(max_duration=2, fps=30, name='hyperjump')
+            window.editor_ui.enabled = False
+            window.fullscreen = True
+            vr.start_recording()
+
 Helper()
-application.paused = True
+# application.time_scale = 0
 
 app.run()

@@ -9,7 +9,16 @@ set_window_color('#111')
 
 title_screen = Scene(name='title_screen', texture='lyden_fra_verdensrommet_banner.png')
 
-space = Scene(name='space', texture='stars.png')
+space_scene = Scene(name='space')
+space = Entity(parent=space_scene, texture='stars.png', scale_x=16/9, texture_offset=[0,0])
+space_scene.on_enable = def():
+    print('PSOIPEKISAPFK')
+    space.enabled = True
+
+space_scene.update = def():
+    space.texture_offset = [space.texture_offset[0]-.1, space.texture_offset[1]-.1]
+    # print(space.texture_offset)
+
 
 sun_scene = Scene(name='sun_scene', texture='stars.png')
 sun = Entity(parent=sun_scene, texture='sun_bloom.gif', scale=16/9, y=.39)
@@ -19,62 +28,93 @@ sun_scene.on_enable = def():
 
 asteroid_scene = Scene(name='asteroid_scene', texture='stars_2.jpg')
 asteroid_belt = Entity(parent=asteroid_scene, texture='asteroid_belt.png', scale=16/9)
+asteroid_scene.on_enable = def():
+    hyperjump.enabled = True
 
-europa_scene = Scene(texture='stars_2.jpg')
-europa = Entity(parent=europa_scene, texture='europa.png', scale_x=16/9*.3, scale_y=.3)
+europa_scene = Scene(name='europa_scene', texture='stars_2.jpg')
+europa = Entity(parent=europa_scene, texture='europa.png', scale_x=16/9*1, scale_y=1)
 europa_scene.on_enable = def():
     print('europa')
     europa.y = -.15
     duration= 30
     europa.animate('y', 0, duration=duration)
-    europa.animate('scale_x', 16/9, duration=duration)
-    europa.animate('scale_y', 1, duration=duration)
+    # europa.animate('scale_x', 16/9, duration=duration)
+    # europa.animate('scale_y', 1, duration=duration)
     b = Button(parent=europa_scene, text='EUROPA', z=-10, text_color=color.light_gray, color=color.clear)
 
 underwater_scene = Scene(name='underwater_scene', texture='underwater.png')
 
 noise_scene = Scene(name='static', texture='vhs_noise.gif')
+mixolydia_centauri_scene = Scene(name='MIXOLYDIA_CENTAURI', texture='mixolydia_centauri')
+Entity(parent=mixolydia_centauri_scene, scale=.2, text='mixolydia_centauri').fit_to_text()
+mixolydia_centauri_scene.on_enable = def():
+    hyperjump.enabled = True
+
+#  nterference/white noise
+alien_scene = Scene(name='alien', texture='alien')
+Entity(parent=alien_scene, scale=.2, text='alien_scene').fit_to_text()
+
+central_star_explosion_scene = Scene(name='central_star_explosion', texture='central_star_explosion')
+Entity(parent=central_star_explosion_scene, scale=.2, text='central_star_explosion_scene').fit_to_text()
+
+mixolydia_centauri_with_moons_scene = Scene(name='mixolydia_centauri', texture='mixolydia_centauri')
+Entity(parent=mixolydia_centauri_with_moons_scene, scale=.2, text='MIXOLYDIA CENTAURI\n+ moons').fit_to_text()
+
 
 pale_blue_dot_scene = Scene(name='pale_blue_dot', texture='pale_blue_dot.jpg')
-terra = Scene(name='terra', texture='terra.png')
-hyperjump = Scene(name='hyperjump', texture='speed.gif')
+
+terra_scene = Scene(name='terra', texture='stars.png')
+terra = Entity(parent=terra_scene, texture='terra.png', scale_x=16/9)
+terra_scene.on_enable = def():
+    hyperjump.enabled = True
+    terra.y = -.5
+    after 3s:
+        terra.animate('y', 0, duration=20)
+
+# hyperjump_scene = Scene(name='hyperjump', texture='')
+hyperjump = Entity(enabled=False, texture='hyperjump.gif', scale_x=16/9)
+white_cover = Entity(parent=hyperjump)
+hyperjump.on_enable = def():
+    white_cover.alpha = 0
+    hyperjump.alpha = 1
+    print('hyperjump!')
+    # hyperjump.texture = None
+    hyperjump.texture = 'hyperjump.gif'
+    after 4s:
+        hyperjump.alpha = 0
+        white_cover.alpha = 1
+        white_cover.animate('alpha', 0, duration=5)
+    # after 10s:
+    #     hyperjump.enabled = False
 
 goto_scene(title_screen)
 
 scenes = [
 title_screen,
 noise_scene,
-space, 
-
+space_scene, 
 sun_scene, 
-hyperjump,
-
 asteroid_scene, 
-# Asteroid field “attack”
 europa_scene, 
 noise_scene,
 underwater_scene,
-
-hyperjump,
 noise_scene, 
-# MIXOLYDIA CENTAURI
-# nterference/white noise
-# Alien face!
-# entral star “exploding” 
-# Many moons appearing. MANY! 
+mixolydia_centauri_scene,
+alien_scene,
+central_star_explosion_scene,
+mixolydia_centauri_with_moons_scene,
 pale_blue_dot_scene, 
-hyperjump,
-terra, 
-# NASO-logo.
-# Logo backwall
+terra_scene, 
+title_screen,
 ]
+# NASO-logo.
 i = -1
 def input(key):
     # print(key)
     if key == '1':
         goto_scene(title_screen)
     elif key == '2':
-        goto_scene(space)
+        goto_scene(space_scene)
     elif key == '3':
         goto_scene(sun_scene)
     elif key == '4':
@@ -92,10 +132,20 @@ def input(key):
     elif key == '9':
         goto_scene(hyperjump)
 
-    if key == 'space':
-        print('goto next scene')
+    if key == 'space' or key == 'right arrow':
         i += 1
+        i = clamp(i, 0, len(scenes)-1)
+        print('goto next scene:', i, scenes[i].name)
+        hyperjump.enabled = False
         goto_scene(scenes[i])
+
+    elif key == 'left arrow':
+        i -= 1
+        i = clamp(i, 0, len(scenes)-1)
+        print('goto next scene:', i, scenes[i].name)
+        hyperjump.enabled = False
+        goto_scene(scenes[i])
+
 
 
 print('a')
