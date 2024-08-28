@@ -7,11 +7,20 @@ set_background_color('#000')
 set_window_color('#111')
 
 
+
 title_screen = Scene(name='title_screen', texture='lyden_fra_verdensrommet_banner.png')
+frame = Entity(texture='frame.png', z=-1, scale_x=16/9*1.001, scale_y=1.001)
+
+waveform = Entity(texture='waveform_2.gif', scale=[.5,.25], roundness=.1, z=-1, y=.4, scale_y=.02, enabled=False)
+# oxygen_meter = HealthBar(position=[-.7, .3, -1], rotation=-90, scale_x=.2, scale_y=.04, text_color=color.clear, alpha=.1, color=color.azure)
+# oxygen_meter.bar.alpha=.75
+# oxygen_meter.value = 80
 
 space_scene = Scene(name='space')
 space = Entity(parent=space_scene, texture='stars.png', scale_x=16/9, texture_offset=[0,0])
 space_scene.on_enable = def():
+    # waveform.enabled = True
+    waveform.scale_y=.01
     print('PSOIPEKISAPFK')
     space.enabled = True
 
@@ -27,11 +36,32 @@ sun_scene.on_enable = def():
     sun.y = .39
     sun.animate('y', -.15, duration=30)
     show_text(title='Sol', description='', character_duration=.2)
+    waveform.enabled = True
+    waveform.scale_y=.25
+    # waveform.animate('scale_x', .5 * 1.5, duration=.5)
+    # waveform.animate('scale_y', .25 * 1.5, duration=.5)
+    # waveform.animate('y', .1, duration=.5)
 
-asteroid_scene = Scene(name='asteroid_scene', texture='stars_2.jpg')
-asteroid_belt = Entity(parent=asteroid_scene, texture='asteroid_belt.png', scale=16/9)
+asteroid_scene = Scene(name='asteroid_scene', texture='')
+asteroid_bg = Entity(parent=asteroid_scene, texture='stars.png', scale_x=16/9*1.5, scale_y=1.5)
+asteroid_belt = Entity(parent=asteroid_scene, texture='asteroid_belt.png', scale=16/9, rotation=0)
+asteroid_0 = Entity(parent=asteroid_belt, texture='asteroid_0.png', scale=0)
+
 asteroid_scene.on_enable = def():
-    hyperjump.enabled = True
+    hyperjump.enabled = False
+    after .01s:
+        asteroid_0.animate('scale_x', 1.25, duration=7, curve=curves.out_expo)
+        asteroid_0.animate('scale_y', 1.25, duration=7, curve=curves.out_expo)
+        # asteroid_0.animate('rotation', 80, duration=2)
+        asteroid_0.animate('x', -2, duration=7, curve=curves.out_expo)
+        asteroid_0.animate('y', -.5, duration=5)
+        # after 2s:
+        # after .2s:
+        asteroid_belt.animate('rotation', -30, duration=7, loop=True)
+        after 7:
+            asteroid_belt.animate('rotation', 30, duration=7, loop=True)
+
+# asteroid_avoidance_game =
 
 europa_scene = Scene(name='europa_scene', texture='stars_2.jpg')
 europa = Entity(parent=europa_scene, texture='europa.png', scale_x=16/9*1, scale_y=1)
@@ -56,8 +86,16 @@ mixolydia_centauri_scene.on_enable = def():
         show_text(title='Mixolydia Centauri', description='Alder ???år\nAntall planeter ???\nStjerner ???\nLiv ???\nOrbital hastighet 720 000 km/t\nOmløpsperiode ~230 millioner år', character_duration=.05)
 
 #  nterference/white noise
-alien_scene = Scene(name='alien', texture='alien')
+alien_scene = Scene(name='alien', texture='stars.png')
 Entity(parent=alien_scene, scale=.2, text='alien_scene').fit_to_text()
+video_transmission = Entity(parent=alien_scene, scale=[16/9*.4, .4], texture='scary_alien.gif', roundness=.1)
+alien_scene.on_enable = def():
+    video_transmission.enabled = False
+    after 3s:
+        video_transmission.scale_y = 0
+        video_transmission.enabled = True 
+        video_transmission.animate('scale_y', .4, duration=.5)
+
 
 central_star_explosion_scene = Scene(name='central_star_explosion', texture='central_star_explosion')
 Entity(parent=central_star_explosion_scene, scale=.2, text='central_star_explosion_scene').fit_to_text()
@@ -66,7 +104,14 @@ mixolydia_centauri_with_moons_scene = Scene(name='mixolydia_centauri', texture='
 Entity(parent=mixolydia_centauri_with_moons_scene, scale=.2, text='MIXOLYDIA CENTAURI\n+ moons').fit_to_text()
 
 
-pale_blue_dot_scene = Scene(name='pale_blue_dot', texture='pale_blue_dot.jpg')
+pale_blue_dot_scene = Scene(name='pale_blue_dot')
+pale_blue_dot = Entity(parent=pale_blue_dot_scene, texture='pale_blue_dot.jpg', scale=2.5)
+pale_blue_dot_scene.on_enable = def():
+    pale_blue_dot.xy = [.3,.2]
+    pale_blue_dot.animate('x', 0, duration=10)
+    pale_blue_dot.animate('y', 0, duration=10)
+
+
 
 terra_scene = Scene(name='terra', texture='stars.png')
 terra = Entity(parent=terra_scene, texture='terra.png', scale_x=16/9)
@@ -80,6 +125,7 @@ terra_scene.on_enable = def():
 hyperjump = Entity(enabled=False, texture='hyperjump.gif', scale_x=16/9)
 white_cover = Entity(parent=hyperjump)
 hyperjump.on_enable = def():
+    waveform.enabled = False 
     white_cover.alpha = 0
     hyperjump.alpha = 1
     print('hyperjump!')
@@ -92,11 +138,13 @@ hyperjump.on_enable = def():
     # after 10s:
     #     hyperjump.enabled = False
 
+
+text_parent = Entity(parent=camera.ui, x=-(16/9*.5)+.1, y=.3, visible_self=False, scale=1)
 load_font('Orbitron-Black')
-title_text = Button(font='Orbitron-Black', text='Terra', text_origin=[-.5,-.5], origin=[-.5,.5], text_size=8, text_color=color.cyan, color=color.clear, x=-(16/9*.5)+.1, y=.4, scale_x=1)
+title_text = Button(parent=text_parent, font='Orbitron-Black', text='Terra', text_origin=[-.5,-.5], origin=[-.5,.5], text_size=8*.75, text_color=color.cyan, color=color.clear, scale_x=1)
 title_text.model.style.textDecoration = 'underline'
 
-description_text = Button(font='Orbitron-Black', text_origin=[-.5,.5], text_size=2, text='6 000 000 000km', text_color=color.cyan, color=color.clear, x=title_text.x, y=title_text.y-.2, origin=[-.5,.5], scale_x=.6, scale_y=.7)
+description_text = Button(parent=text_parent, font='Orbitron-Black', text_origin=[-.5,.5], text_size=2*.75, text='6 000 000 000km', text_color=color.cyan, color=color.clear, x=title_text.x, y=title_text.y-.2, origin=[-.5,.5], scale_x=.6, scale_y=.7)
 title_text.text = ''
 description_text.text = ''
 
@@ -177,6 +225,7 @@ def input(key):
         i = clamp(i, 0, len(scenes)-1)
         print('goto next scene:', i, scenes[i].name)
         hyperjump.enabled = False
+        reset_text()
         goto_scene(scenes[i])
 
     elif key == 'left arrow':
@@ -184,6 +233,7 @@ def input(key):
         i = clamp(i, 0, len(scenes)-1)
         print('goto next scene:', i, scenes[i].name)
         hyperjump.enabled = False
+        reset_text()
         goto_scene(scenes[i])
 
 
