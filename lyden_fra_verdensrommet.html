@@ -137,7 +137,7 @@ Entity(parent=mixolydia_centauri_with_moons_scene, scale=.2, text='MIXOLYDIA CEN
 
 
 pale_blue_dot_scene = Scene(name='pale_blue_dot')
-pale_blue_dot = Entity(parent=pale_blue_dot_scene, texture='pale_blue_dot.jpg', scale=2.5)
+pale_blue_dot = Entity(parent=pale_blue_dot_scene, texture='pale_blue_dot.jpg', scale=[3/2*2, 2])
 pale_blue_dot_scene.on_enable = def():
     pale_blue_dot.xy = [.3,.2]
     pale_blue_dot.animate('x', 0, duration=20)
@@ -154,7 +154,7 @@ terra_scene.on_enable = def():
         terra.animate('y', 0, duration=50)
 
 # hyperjump_scene = Scene(name='hyperjump', texture='')
-hyperjump = Entity(enabled=False, texture='hyperjump.gif', scale_x=16/9)
+hyperjump = Entity(enabled=False, texture='hyperjump_v2.gif', scale_x=16/9)
 hyperjump.white_cover = Entity(parent=hyperjump)
 hyperjump.on_enable = def():
     waveform.enabled = False 
@@ -162,8 +162,8 @@ hyperjump.on_enable = def():
     hyperjump.alpha = 1
     print('hyperjump!')
     # hyperjump.texture = None
-    hyperjump.texture = 'hyperjump.gif'
-    after 4s:
+    hyperjump.texture = 'hyperjump_v2.gif'
+    after 9:
         hyperjump.alpha = 0
         hyperjump.white_cover.alpha = 1
         hyperjump.white_cover.animate('alpha', 0, duration=5)
