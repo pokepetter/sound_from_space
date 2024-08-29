@@ -110,11 +110,13 @@ gravity_scene.update = def():
     gravity_scene.stars.texture_offset = [gravity_scene.stars.texture_offset[0]-.00005, gravity_scene.stars.texture_offset[1]-.00005]
         
 
-mixolydia_centauri_scene = Scene(name='MIXOLYDIA_CENTAURI', texture='mixolydia_centauri')
-Entity(parent=mixolydia_centauri_scene, scale=.2, text='mixolydia_centauri').fit_to_text()
+mixolydia_centauri_scene = Scene(name='MIXOLYDIA_CENTAURI', texture='starts.png')
+# Entity(parent=mixolydia_centauri_scene, scale=.2, text='mixolydia_centauri').fit_to_text()
+# mixolydia_bg = Entity(parent=mixolydia_centauri_scene, texture='stars.png', scale_x=16/9, z=1)
+mixolydia = Entity(parent=mixolydia_centauri_scene, texture='mixolydia_centauri.png', scale_x=16/9, z=-1)
 mixolydia_centauri_scene.on_enable = def():
     hyperjump.enabled = True
-    after 6s:
+    after hyperjump_duration:
         show_text(title='Mixolydia\nCentauri', description='Alder ???år\nAntall planeter ???\nStjerner ???\nLiv ???\nOrbital hastighet 720 000 km/t\nOmløpsperiode ~230 millioner år', character_duration=.05)
 
 #  nterference/white noise
@@ -154,6 +156,7 @@ terra_scene.on_enable = def():
         terra.animate('y', 0, duration=50)
 
 # hyperjump_scene = Scene(name='hyperjump', texture='')
+hyperjump_duration = 9
 hyperjump = Entity(enabled=False, texture='hyperjump_v2.gif', scale_x=16/9)
 hyperjump.white_cover = Entity(parent=hyperjump)
 hyperjump.on_enable = def():
@@ -163,7 +166,7 @@ hyperjump.on_enable = def():
     print('hyperjump!')
     # hyperjump.texture = None
     hyperjump.texture = 'hyperjump_v2.gif'
-    after 9:
+    after hyperjump_duration:
         hyperjump.alpha = 0
         hyperjump.white_cover.alpha = 1
         hyperjump.white_cover.animate('alpha', 0, duration=5)
