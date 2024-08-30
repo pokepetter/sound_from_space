@@ -41,25 +41,50 @@ sun_scene.on_enable = def():
     # waveform.animate('scale_y', .25 * 1.5, duration=.5)
     # waveform.animate('y', .1, duration=.5)
 
-asteroid_scene = Scene(name='asteroid_scene', texture='')
-asteroid_bg = Entity(parent=asteroid_scene, texture='stars.png', scale_x=16/9*1.5, scale_y=1.5)
-asteroid_belt = Entity(parent=asteroid_scene, texture='asteroid_belt.png', scale=16/9, rotation=0)
-asteroid_0 = Entity(parent=asteroid_belt, texture='asteroid_0.png', scale=0)
-
+asteroid_scene = Scene(name='asteroid_scene', texture='stars_small.png')
+asteroid_bg = Entity(parent=asteroid_scene, texture='asteroid_field_bg.png', scale_x=16/9, scale_y=1, texture_offset=[0,0])
+asteroid_mg = Entity(parent=asteroid_scene, texture='asteroid_field_mg.png', scale_x=16/9, texture_offset=[0,0])
+asteroid_fg = Entity(parent=asteroid_scene, texture='asteroid_field_fg.png', scale_x=16/9, texture_offset=[0,0])
+asteroid_0 = Entity(parent=asteroid_scene, texture='asteroid_0.png', scale=0)
+asteroid_scene.update = def():
+    asteroid_bg.texture_offset = [asteroid_bg.texture_offset[0]-.0001*-2, asteroid_bg.texture_offset[1]-.00007*-2]
+    asteroid_mg.texture_offset = [asteroid_mg.texture_offset[0]-(.0001*5), asteroid_mg.texture_offset[1]-(.00007*5)]
+    asteroid_fg.texture_offset = [asteroid_fg.texture_offset[0]-(.0001*24), asteroid_fg.texture_offset[1]-(.00007*24)]
+    # asteroid_scene.rotation += 3
+set_scale(.8)
 asteroid_scene.on_enable = def():
     waveform.scale_y=.05
     # hyperjump.enabled = False
-    after .01s:
-        asteroid_0.animate('scale_x', 1.25, duration=7, curve=curves.out_expo)
-        asteroid_0.animate('scale_y', 1.25, duration=7, curve=curves.out_expo)
+asteroid_direction = -1
+asteroid_scene.input = def input(key):
+    if key == 'space':
+        asteroid_0.scale = [0,0]
+        asteroid_0.xy = [0,0]
+        asteroid_0.animate('scale_x', 5, duration=5, curve=curves.out_expo)
+        asteroid_0.animate('scale_y', 5, duration=5, curve=curves.out_expo)
         # asteroid_0.animate('rotation', 80, duration=2)
-        asteroid_0.animate('x', -2, duration=7, curve=curves.out_expo)
-        asteroid_0.animate('y', -.5, duration=5)
+
+        after 1:
+            asteroid_0.animate('x', -3*asteroid_direction, duration=2, curve=curves.out_expo)
+            asteroid_0.animate('y', -.4*asteroid_direction, duration=2)
+        
+            asteroid_bg.animate('x', -.1*asteroid_direction, duration=2)
+            asteroid_mg.animate('x', -.2*asteroid_direction, duration=2)
+            asteroid_fg.animate('x', -.3*asteroid_direction, duration=2)
+        
+            after 2:
+                asteroid_bg.animate('x', 0, duration=2)
+                asteroid_mg.animate('x', 0, duration=2)
+                asteroid_fg.animate('x', 0, duration=2)
+        if asteroid_direction == 1:
+            asteroid_direction = -1
+        else:
+            asteroid_direction = 1
         # after 2s:
         # after .2s:
-        asteroid_belt.animate('rotation', -30, duration=7, loop=True)
-        after 7:
-            asteroid_belt.animate('rotation', 30, duration=7, loop=True)
+        # asteroid_belt.animate('rotation', -30, duration=7, loop=True)
+        # after 7:
+        #     asteroid_belt.animate('rotation', 30, duration=7, loop=True)
 
 # asteroid_avoidance_game =
 
@@ -85,13 +110,13 @@ europa_scene.input = def input(key):
         reset_text()
         # europa.animate('y', -.02, duration=1)
         after 1s:
-            europa.animate('rotation', 30, duration=10)
-            europa.animate('y', -.15, duration=5)
-            europa.animate('scale_y', 4, duration=10)
-            europa.animate('scale_x', 16/9*4, duration=10)
-            after 9s:
-                europa_scene.white_cover.animate('alpha', 1, duration=1)
-                after 1s:
+            # europa.animate('rotation', 30, duration=10)
+            europa.animate('y', -.35, duration=2)
+            europa.animate('scale_y', 4, duration=5)
+            europa.animate('scale_x', 16/9*4, duration=5)
+            after 2s:
+                europa_scene.white_cover.animate('alpha', 1, duration=4)
+                after 4s:
                     travel_to(SCENE_INDEX+1)
                     europa_scene.white_cover.animate('alpha', 0, duration=3)
 
@@ -217,6 +242,9 @@ title_screen,
 launch_scene,
 space_scene, 
 sun_scene, 
+asteroid_scene, 
+asteroid_scene, 
+asteroid_scene, 
 asteroid_scene, 
 europa_scene, 
 europa_scene,
