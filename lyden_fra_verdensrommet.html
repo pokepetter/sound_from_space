@@ -9,7 +9,7 @@ set_window_color('#111')
 
 SCENE_INDEX = -1
 title_screen = Scene(name='title_screen', texture='lyden_fra_verdensrommet_banner.png')
-frame = Entity(texture='frame.png', z=-1, scale_x=16/9*1.001, scale_y=1.001)
+frame = Entity(texture='frame.png', z=-1, scale_x=16/9*1.01, scale_y=1.01)
 
 waveform = Entity(texture='waveform_2.gif', scale=[.5,.25], roundness=.1, z=-1, y=.35, x=-.5, scale_y=.02, enabled=False)
 # oxygen_meter = HealthBar(position=[-.7, .3, -1], rotation=-90, scale_x=.2, scale_y=.04, text_color=color.clear, alpha=.1, color=color.azure)
@@ -88,7 +88,7 @@ asteroid_scene.input = def input(key):
 
 # asteroid_avoidance_game =
 
-europa_scene = Scene(name='europa_scene', texture='stars_2.jpg')
+europa_scene = Scene(name='europa_scene', texture='stars_small.png')
 europa = Entity(parent=europa_scene, texture='europa.png')
 europa_scene.on_enable = def():
     europa.scale_x = 16/9 * 1
@@ -135,17 +135,20 @@ gravity_scene.update = def():
     gravity_scene.stars.texture_offset = [gravity_scene.stars.texture_offset[0]-.00005, gravity_scene.stars.texture_offset[1]-.00005]
         
 
-mixolydia_centauri_scene = Scene(name='MIXOLYDIA_CENTAURI', texture='starts.png')
+mixolydia_centauri_scene = Scene(name='mixolydia_centauri_scene', texture='stars.png')
 # Entity(parent=mixolydia_centauri_scene, scale=.2, text='mixolydia_centauri').fit_to_text()
 # mixolydia_bg = Entity(parent=mixolydia_centauri_scene, texture='stars.png', scale_x=16/9, z=1)
 mixolydia = Entity(parent=mixolydia_centauri_scene, texture='mixolydia_centauri.png', scale_x=16/9, z=-1)
 mixolydia_centauri_scene.on_enable = def():
+    print('GO TO:', mixolydia_centauri_scene)
+    mixolydia.y = .3
     hyperjump.enabled = True
     after hyperjump_duration:
+        mixolydia.animate('y', .1, duration=20)
         show_text(title='Mixolydia\nCentauri', description='Alder ???år\nAntall planeter ???\nStjerner ???\nLiv ???\nOrbital hastighet 720 000 km/t\nOmløpsperiode ~230 millioner år', character_duration=.05)
 
 #  nterference/white noise
-alien_scene = Scene(name='alien', texture='stars.png')
+alien_scene = Scene(name='alien', texture='mixolydia_centauri.png')
 # Entity(parent=alien_scene, scale=.2, text='alien_scene').fit_to_text()
 video_transmission = Entity(parent=alien_scene, scale=[16/9*.4, .4], texture='scary_alien.gif', roundness=.1)
 alien_scene.on_enable = def():
@@ -156,11 +159,11 @@ alien_scene.on_enable = def():
         video_transmission.animate('scale_y', .4, duration=.5)
 
 
-central_star_explosion_scene = Scene(name='central_star_explosion', texture='central_star_explosion')
-Entity(parent=central_star_explosion_scene, scale=.2, text='central_star_explosion_scene', color=color.clear, text_color=color.gray).fit_to_text()
+central_star_explosion_scene = Scene(name='central_star_explosion', texture='mixolydia_centauri.png')
+# Entity(parent=central_star_explosion_scene, scale=.2, text='central_star_explosion_scene', color=color.clear, text_color=color.gray).fit_to_text()
 
 mixolydia_centauri_with_moons_scene = Scene(name='mixolydia_centauri', texture='mixolydia_centauri')
-Entity(parent=mixolydia_centauri_with_moons_scene, scale=.2, text='MIXOLYDIA CENTAURI\n+ moons', color=color.clear, text_color=color.gray).fit_to_text()
+# Entity(parent=mixolydia_centauri_with_moons_scene, scale=.2, text='MIXOLYDIA CENTAURI\n+ moons', color=color.clear, text_color=color.gray).fit_to_text()
 
 
 pale_blue_dot_scene = Scene(name='pale_blue_dot')
@@ -181,8 +184,11 @@ terra_scene.on_enable = def():
         terra.animate('y', 0, duration=50)
 
 # hyperjump_scene = Scene(name='hyperjump', texture='')
-hyperjump_duration = 9
-hyperjump = Entity(enabled=False, texture='hyperjump_v2.gif', scale_x=16/9)
+hyperjump_duration = 4
+# hyperjump = Entity(enabled=False, texture='hyperjump_v2.gif', scale_x=16/9)
+hyperjump = Video(name='hyperjump_frames/output_video.mp4', scale=2)
+# hyperjump.play()
+
 hyperjump.white_cover = Entity(parent=hyperjump)
 hyperjump.on_enable = def():
     waveform.enabled = False 
@@ -190,7 +196,7 @@ hyperjump.on_enable = def():
     hyperjump.alpha = 1
     print('hyperjump!')
     # hyperjump.texture = None
-    hyperjump.texture = 'hyperjump_v2.gif'
+    hyperjump.play()
     after hyperjump_duration:
         hyperjump.alpha = 0
         hyperjump.white_cover.alpha = 1
@@ -226,7 +232,7 @@ def show_text(title='', description='', character_duration=.05, duration=4):
             description_text.text += e
     
     total_duration = max(len(title)*character_duration, len(description)*character_duration) + duration
-    print('------|||||||||||', total_duration)
+    # print('------|||||||||||', total_duration)
     reset_text_routine = invoke(reset_text, delay=total_duration)
 
 def reset_text():
