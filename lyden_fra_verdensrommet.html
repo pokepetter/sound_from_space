@@ -5,18 +5,22 @@
 set_orientation('horizontal')
 set_background_color('#000')
 set_window_color('#111')
-
+load_font('Orbitron-Black')
 
 SCENE_INDEX = -1
 title_screen = Scene(name='title_screen', texture='lyden_fra_verdensrommet_banner.png')
 frame = Entity(texture='frame.png', z=-1, scale_x=16/9*1.01, scale_y=1.01)
 
 waveform = Entity(texture='waveform_2.gif', scale=[.5,.25], roundness=.1, z=-1, y=.35, x=-.5, scale_y=.02, enabled=False)
-# oxygen_meter = HealthBar(position=[-.7, .3, -1], rotation=-90, scale_x=.2, scale_y=.04, text_color=color.clear, alpha=.1, color=color.azure)
+waveform_idle = Entity(scale=waveform.scale, position=waveform.position, texture='waveform_idle.png', enabled=False)
+oxygen_meter = HealthBar(position=[.75, .3, -1], rotation=-90, scale_x=.2, scale_y=.03, text_color=color.clear, alpha=.1, bar_color=color.azure)
+gravity_meter = HealthBar(position=[.75+.05, .3, -1], rotation=-90, scale_x=.2, scale_y=.03, text_color=color.clear, alpha=.1, bar_color=color.cyan)
+
 # oxygen_meter.bar.alpha=.75
 # oxygen_meter.value = 80
 
-launch_scene = Scene(name='launch_scene')
+launch_scene = Scene(name='launch_scene', texture='stars_small.png')
+Button(parent=launch_scene, font='Orbitron-Black', text='Oppskytning om\n3...\n2...\n1...', z=-10, text_color=color.light_gray, color=color.clear)
                      
 
 space_scene = Scene(name='space_scene')
@@ -27,6 +31,8 @@ space_scene.on_enable = def():
 space_scene.update = def():
     space_scene.bg.texture_offset = [space_scene.bg.texture_offset[0]-.00005, space_scene.bg.texture_offset[1]-.00005]
 
+
+sun_far_scene = Scene(name='sun_scene', texture='stars.png')
 
 sun_scene = Scene(name='sun_scene', texture='stars.png')
 sun = Entity(parent=sun_scene, texture='sun_bloom.gif', scale=16/9)
@@ -43,23 +49,26 @@ sun_scene.on_enable = def():
 
 asteroid_scene = Scene(name='asteroid_scene', texture='stars_small.png')
 asteroid_bg = Entity(parent=asteroid_scene, texture='asteroid_field_bg.png', scale_x=16/9, scale_y=1, texture_offset=[0,0])
-asteroid_mg = Entity(parent=asteroid_scene, texture='asteroid_field_mg.png', scale_x=16/9, texture_offset=[0,0])
-asteroid_fg = Entity(parent=asteroid_scene, texture='asteroid_field_fg.png', scale_x=16/9, texture_offset=[0,0])
+asteroid_mg = Entity(parent=asteroid_scene, texture='asteroid_field_mg.png', scale_x=16/9*1.2, scale_y=1.2, texture_offset=[0,0])
+asteroid_fg_2 = Entity(parent=asteroid_scene, texture='asteroid_field_fg.png', scale_x=16/9*1.2, scale_y=1.2, texture_offset=[0,0])
+asteroid_fg = Entity(parent=asteroid_scene, texture='asteroid_field_fg_2.png', scale_x=16/9*1.2, scale_y=1.2,  texture_offset=[0,0])
 asteroid_0 = Entity(parent=asteroid_scene, texture='asteroid_0.png', scale=0)
 asteroid_scene.update = def():
     asteroid_bg.texture_offset = [asteroid_bg.texture_offset[0]-.0001*-2, asteroid_bg.texture_offset[1]-.00007*-2]
     asteroid_mg.texture_offset = [asteroid_mg.texture_offset[0]-(.0001*5), asteroid_mg.texture_offset[1]-(.00007*5)]
     asteroid_fg.texture_offset = [asteroid_fg.texture_offset[0]-(.0001*24), asteroid_fg.texture_offset[1]-(.00007*24)]
+    asteroid_fg_2.texture_offset = [asteroid_fg_2.texture_offset[0]-(.0001*18), asteroid_fg_2.texture_offset[1]-(.00007*18)]
     # asteroid_scene.rotation += 3
 set_scale(.8)
 asteroid_scene.on_enable = def():
-    waveform.scale_y=.05
+    waveform.enabled = False
+    waveform_idle.enalbed = True
     # hyperjump.enabled = False
 asteroid_direction = -1
 asteroid_scene.input = def input(key):
     if key == 'space':
-        asteroid_0.scale = [0,0]
-        asteroid_0.xy = [0,0]
+        asteroid_0.scale = [.4,.4]
+        asteroid_0.xy = [.6*16/9,.6]
         asteroid_0.animate('scale_x', 5, duration=5, curve=curves.out_expo)
         asteroid_0.animate('scale_y', 5, duration=5, curve=curves.out_expo)
         # asteroid_0.animate('rotation', 80, duration=2)
@@ -104,6 +113,8 @@ europa_scene.on_enable = def():
     show_text(title='Europa', description='Gjennomsnittsfart\n13,74 km/s\nInklinasjon	0,47°\nModerplanet	Jupiter', character_duration=.05)
     
 europa_scene.white_cover = Entity(parent=europa_scene, scale=3, alpha=0)
+emergency_landing_prompt = Button(parent=europa_scene, font='Orbitron-Black', text='Starter nødlanding', z=-10, text_color=color.light_gray, color=color.clear)
+
 europa_scene.input = def input(key):
     if key == 'space':
         europa.y = -.15
@@ -122,14 +133,26 @@ europa_scene.input = def input(key):
 
     # b = Button(parent=europa_scene, text='EUROPA', z=-10, text_color=color.light_gray, color=color.clear)
 
-underwater_scene = Scene(name='underwater_scene', texture='underwater.png')
+underwater_scene = Scene(name='underwater_scene', texture='underwater_2.png')
 
 gravity_scene = Scene(name='gravity_scene')
+gravity_warning = Button(font='Orbitron-Black', text='⚠️ Advarsel ⚠️\nLav gravitasjon', z=-10, text_color=color.white, color=hsv(0,.9,.8,.5), padding=[1,1], roundness=.02, enabled=1, t=0)
+gravity_warning.fit_to_text()
+gravity_warning.update = def _():
+    gravity_warning.t += 1/60 * 8
+    gravity_warning.alpha = .5 + (math.sin(gravity_warning.t) * .25)
+
+# gravity_warning
+        
 gravity_scene.stars = Entity(parent=gravity_scene, texture='stars.png', scale_x=16/9, texture_offset=[0,0])
 gravity_scene.on_enable = def():
     hyperjump.enabled = True
-    # waveform.enabled = True
-    waveform.scale_y=.01
+    waveform.enabled = False
+    waveform_idle.enabled = True
+    after hyperjump_duration:
+        gravity_warning.enabled = True
+        # camera.shake()
+
 
 gravity_scene.update = def():
     gravity_scene.stars.texture_offset = [gravity_scene.stars.texture_offset[0]-.00005, gravity_scene.stars.texture_offset[1]-.00005]
@@ -149,9 +172,15 @@ mixolydia_centauri_scene.on_enable = def():
 
 #  nterference/white noise
 alien_scene = Scene(name='alien', texture='mixolydia_centauri.png')
+incoming_transmission = Button(parent=alien_scene, font='Orbitron-Black', text='Incoming Transmission', z=-10, text_color=color.light_gray, color=color.clear)
+incoming_transmission.fit_to_text()
+
 # Entity(parent=alien_scene, scale=.2, text='alien_scene').fit_to_text()
 video_transmission = Entity(parent=alien_scene, scale=[16/9*.4, .4], texture='scary_alien.gif', roundness=.1)
+
 alien_scene.on_enable = def():
+    incoming_transmission.enabled = False
+    after
     video_transmission.enabled = False
     after 3s:
         video_transmission.scale_y = 0
@@ -206,7 +235,7 @@ hyperjump.on_enable = def():
 
 
 text_parent = Entity(parent=camera.ui, x=-(16/9*.5)+.1, y=.3, visible_self=False, scale=1)
-load_font('Orbitron-Black')
+
 title_text = Button(parent=text_parent, font='Orbitron-Black', text='Terra', text_origin=[-.5,-.5], origin=[-.5,.5], text_size=8*.5, text_color='#c6edf5ee', color=color.clear, scale_x=1)
 title_text.model.style.textDecoration = 'underline'
 
@@ -278,9 +307,9 @@ def travel_to(index):
 # NASO-logo.
 def input(key):
     # print(key)
-    number_keys = '0123456789'.split('')
+    number_keys = '0123456789!"#¤%&/()'.split('')
     if key in number_keys:
-        SCENE_INDEX = clamp(int(key), 0, len(scenes)-1)
+        SCENE_INDEX = clamp(number_keys.index(key), 0, len(scenes)-1)
         travel_to(SCENE_INDEX)
 
     if key == 'space' or key == 'right arrow':
