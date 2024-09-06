@@ -11,10 +11,6 @@ SCENE_INDEX = -1
 title_screen = Scene(name='title_screen', texture='lyden_fra_verdensrommet_banner.png', z=-2)
 frame = Entity(texture='frame.png', z=-20, scale_x=16/9*1.02, scale_y=1.02)
 
-waveform = Entity(texture='waveform_2.gif', scale=[.5,.25], roundness=.1, z=-1, y=.35, x=-.5, scale_y=.02, enabled=False)
-# waveform_warning = Button(parent=waveform, font='Orbitron-Black', text='⚠️', z=-10, text_color=color.white, color=hsv(0,0,1,.5), padding=[.1,.1], roundness=.02, enabled=1, t=0)
-waveform_idle = Entity(scale=waveform.scale, position=waveform.position, texture='waveform_idle.png', enabled=False)
-waveform.enabled = False
 
 oxygen_meter = HealthBar(position=[.75, .3, -1], rotation=-90, scale_x=.2, scale_y=.03, text_color=color.clear, alpha=.1, bar_color='#c6edf5ee')
 _ = Button(parent=oxygen_meter, font='Orbitron-Black', text='Konsetrasjon \nper m3 i kabinen\n|\n|\n_', text_origin=[-.5,.5], x=-.45, y=1.2, z=-10, text_color=color.white, color=hsv(0,0,1,.0), text_size=.5, enabled=1, t=0)
@@ -26,37 +22,44 @@ gravity_meter = HealthBar(position=[.75+.05, .3, -1], rotation=-90, scale_x=.2, 
 
 
 launch_scene = Scene(name='launch_scene', texture='stars_small.png')
+sun_far = Entity(parent=launch_scene, texture='stars.png', scale=16/9)
 # launch_scene.on_enable = def _():
+door_bot = Entity(parent=launch_scene, texture='airlock_door_bottom.png', origin=[0,.5], scale_x=16/9, scale_y=.5, z=-20)
+door_top = Entity(parent=launch_scene, texture='airlock_door_top.png', origin=[0,-.5], scale_x=16/9, scale_y=.5, z=-20)
+launch_scene.on_enable = def():
+    door_top.y = 0
+    door_bot.y = 0
+    sun_far.y = .5
 
-Button(parent=launch_scene, font='Orbitron-Black', text='Oppskytning om\n3...\n2...\n1...', z=-10, text_color=color.light_gray, color=color.clear)
+launch_scene.input = def input(key):
+    if key == 'space':
+        door_top.animate('y', .5, duration=15, curve=curves.linear)
+        door_bot.animate('y', -.5, duration=15, curve=curves.linear)
+        camera.shake(duration=3)
+        sun_far.animate('y', 0, duration=30)
+
+# Button(parent=launch_scene, font='Orbitron-Black', text='Oppskytning om\n3...\n2...\n1...', z=-10, text_color=color.light_gray, color=color.clear)
                      
 
-space_scene = Scene(name='space_scene')
-space_scene.bg = Entity(parent=space_scene, texture='stars.png', scale_x=16/9, texture_offset=[0,0])
-space_scene.on_enable = def():
-    waveform.enabled = False
-    waveform_idle.enabled = True
+# space_scene = Scene(name='space_scene')
+# space_scene.bg = Entity(parent=space_scene, texture='stars.png', scale_x=16/9, texture_offset=[0,0])
 
-space_scene.update = def():
-    space_scene.bg.texture_offset = [space_scene.bg.texture_offset[0]-.00005, space_scene.bg.texture_offset[1]-.00005]
+# space_scene.update = def():
+#     space_scene.bg.texture_offset = [space_scene.bg.texture_offset[0]-.00005, space_scene.bg.texture_offset[1]-.00005]
 
 
-sun_far_scene = Scene(name='sun_far_scene', texture='stars.png')
-Button(parent=sun_far_scene, font='Orbitron-Black', text='(solen langt vekke)', text_size=2, z=-10, text_color=color.light_gray, color=color.clear)
+# sun_far_scene = Scene(name='sun_far_scene', texture='stars.png')
+# Button(parent=sun_far_scene, font='Orbitron-Black', text='(solen langt vekke)', text_size=2, z=-10, text_color=color.light_gray, color=color.clear)
 
 sun_scene = Scene(name='sun_scene', texture='stars.png')
 sun = Entity(parent=sun_scene, texture='sun_bloom.gif', scale=16/9)
+waveform = Entity(parent=sun_scene, texture='waveform_2.gif', scale=[.5,.25], roundness=.1, z=-1, y=.35, x=-.5)
+
 sun_scene.on_enable = def():
     print('goto sun')
     sun.y = .39
-    sun.animate('y', -.15, duration=30)
+    sun.animate('y', -.1, duration=60, curve=curves.out_expo)
     # show_info(title='Sol', description='', character_duration=.2)
-    waveform.enabled = True
-    waveform.scale_y=.25
-
-    # waveform.animate('scale_x', .5 * 1.5, duration=.5)
-    # waveform.animate('scale_y', .25 * 1.5, duration=.5)
-    # waveform.animate('y', .1, duration=.5)
 
 asteroid_scene = Scene(name='asteroid_scene', texture='stars_small.png')
 asteroid_bg = Entity(parent=asteroid_scene, texture='asteroid_field_bg.png', scale_x=16/9, scale_y=1, texture_offset=[0,0])
@@ -73,7 +76,6 @@ asteroid_scene.update = def():
 # set_scale(.95)
 asteroid_scene.on_enable = def():
     waveform.enabled = False
-    waveform_idle.enalbed = True
     show_info(title='Asteroidebeltet', description='Sted: Mellom Mars og Jupiter\nAvstand fra Solen: 2 - 3.3 AU\nAntall: 1-2 millioner > ⌀1km\n Dvergplaneter: Ceres', character_duration=.05)
 
     # hyperjump.enabled = False
@@ -150,9 +152,16 @@ europa_scene.input = def input(key):
 
 underwater_scene = Scene(name='underwater_scene', texture='underwater_2.png')
 underwater_graphics = Entity(parent=underwater_scene, texture='underwater_2.png', scale_x=16/9, texture_offset=[0,0])
+underwater_cover = Entity(parent=underwater_scene, scale=2, color=color.black, z=-2)
+ice_effect = Entity(parent=underwater_scene, scale_x=16/9, texture='freeze_effect.png', z=-1, alpha=.5)
 underwater_scene.on_enable = def():
     underwater_graphics.y = -.1
-    underwater_graphics.animate('y', 0, duration=4, curve=curves.out_expo)
+    underwater_graphics.animate('y', 0, duration=30, curve=curves.out_expo)
+    underwater_cover.alpha = 1
+    underwater_cover.animate('alpha', 0, duration=10)
+    ice_effect.alpha = 0
+    after 2:
+        ice_effect.animate('alpha', .75, duration=10)
     # show_info(title='Europa', description='Alder ???år\nAntall planeter ???\nStjerner ???\nLiv ???\nOrbital hastighet 720 000 km/t\nOmløpsperiode ~230 millioner år', character_duration=.05)
 underwater_scene.input = def input(key):
     if key == 'space':
@@ -189,8 +198,7 @@ gravity_scene = Scene(name='gravity_scene', i=0)
 gravity_scene.stars = Entity(parent=gravity_scene, texture='stars.png', scale_x=16/9, texture_offset=[0,0])
 gravity_scene.on_enable = def():
     hyperjump.enabled = True
-    # waveform.enabled = False
-    # waveform_idle.enabled = True
+
 gravity_scene.input = def input(key):
     if key == 'space':
         print('--', gravity_scene.i)
@@ -201,7 +209,7 @@ gravity_scene.input = def input(key):
         if gravity_scene.i == 2:
             stop_warning()
         gravity_scene.i += 1
-        # camera.shake()
+        camera.shake()
 
 
 gravity_scene.update = def():
@@ -258,18 +266,23 @@ pale_blue_dot_scene.on_enable = def():
 
 terra_scene = Scene(name='terra', texture='stars.png')
 terra = Entity(parent=terra_scene, texture='terra.png', scale_x=16/9)
-naso_logo = Entity(parent=terra_scene, texture='NASO_transparent.png', scale_x=3599/2312*.5, scale_y=.5)
+terra.door_bot = Entity(parent=terra_scene, texture='airlock_door_bottom.png', origin=[0,.5], scale_x=16/9, scale_y=.5, z=-20)
+terra.door_top = Entity(parent=terra_scene, texture='airlock_door_top.png', origin=[0,-.5], scale_x=16/9, scale_y=.5, z=-20)
+# naso_logo = Entity(parent=terra_scene, texture='NASO_transparent.png', scale_x=3599/2312*.5, scale_y=.5)
 
 terra_scene.on_enable = def():
     hyperjump.enabled = True
-    naso_logo.alpha = 0
+    # naso_logo.alpha = 0
     terra.y = -.5
+    terra.door_top.y = .5
+    terra.door_bot.y = -.5
     after 6s:
         terra.animate('y', 0, duration=50)
 
 terra_scene.input = def input(key):
     if key == 'space':
-        naso_logo.animate('alpha', 1, duration=1)
+        terra.door_top.animate('y', 0, duration=1)
+        terra.door_bot.animate('y', 0, duration=1)
 
 
 # hyperjump_scene = Scene(name='hyperjump', texture='')
@@ -281,7 +294,6 @@ hyperjump.white_cover = Entity(parent=hyperjump.video)
 
 hyperjump.on_enable = def():
     print('hyperjump!')
-    waveform.enabled = False 
     hyperjump.white_cover.alpha = 0
     hyperjump.video.stop()
     oxygen_meter.enabled = False
@@ -368,8 +380,7 @@ goto_scene(title_screen)
 scenes = [
 title_screen,
 launch_scene,
-space_scene, 
-sun_far_scene, 
+launch_scene,
 sun_scene, 
 asteroid_scene, 
 asteroid_scene, 
@@ -400,7 +411,6 @@ def travel_to(index):
     index = clamp(index, 0, len(scenes)-1)
     hyperjump.enabled = False
     reset_text(hard=True)
-    # waveform.scale_y = .1
     goto_scene(scenes[index])
     gravity_meter.enabled = True
     oxygen_meter.enabled = True
