@@ -335,6 +335,7 @@ class Entity {
         this.on_enable = null
         this.on_disable = null
         this.color = '#ffffff'
+        this.text_color = color.black
         this.x = 0
         this.y = 0
         this.z = 0
@@ -617,7 +618,7 @@ class Entity {
     set text(value) {
         this.model.innerHTML = value
     }
-    get text_color() {return this.model.style.color}
+    get text_color() {return this._text_color}
     set text_color(value) {
         if (!(typeof value == "string")) {
             // print('set color:', value)
@@ -625,16 +626,22 @@ class Entity {
             if (value.length == 4) {
                 alpha = value[3]
             }
+            this._text_color = [value[0], value[1], value[2], alpha]
             value = `rgba(${value[0]},${value[1]},${value[2]},${alpha})`
         }
         this.model.style.color = value
     }
-    get text_alpha() {return this.text_color[3]}
+    get text_alpha() {
+        if (!this._text_color) {
+            return 1
+        }
+        return this.text_color[3]
+    }
     set text_alpha(value) {
-        print(value)
-        var current_color = this.color
-        current_color[3] = value
-        this.text_color = current_color
+        print('aaaaa', value)
+        var current_text_color = this.text_color
+        current_text_color[3] = value
+        this.text_color = current_text_color
     }
     get text_size() {return this._text_size}
     set text_size(value) {
@@ -756,6 +763,19 @@ class Entity {
                     1000*duration
                 )
             )
+    }
+
+    appear() {
+        let target_scale_y = this.scale_y
+        let target_scale_x = this.scale_x
+        let target_text_alpha = this.text_alpha
+        this.scale = [0,0]
+        this.text_alpha = 0
+        this.animate('scale_y', target_scale_y, .25)
+        after(.25, () => {
+            this.animate('scale_x', target_scale_x, .5)
+            this.animate('text_alpha', target_text_alpha, .25)
+        })
     }
 
     fit_to_text() {
@@ -958,7 +978,7 @@ function Scene(options) {
 }
 class StateHandler {
     constructor (options) {
-        let settings = {states:{}, fade:false}
+        let settings = {states:{}, fade:false, fade_in_duration:.2, fade_out_duration:1}
         for (const [key, value] of Object.entries(options)) {
             settings[key] = value
         }
@@ -966,18 +986,20 @@ class StateHandler {
         camera.overlay = new Entity({parent:camera, name:'overlay', color:color.black, alpha:0, z:-99, scale:[1.1,aspect_ratio*1.1]})
         this.states = settings['states']
         this.fade = settings['fade']
+        this.fade_in_duration = settings['fade_in_duration']
+        this.fade_out_duration = settings['fade_out_duration']
         this.state = Object.keys(this.states)[0]
     }
 
     get state() {return this._state}
     set state(value) {
         if (this.fade && (value != this._state)) {
-            print('fade in overlay')
-            camera.overlay.animate('alpha', 1, .2)
+            print('fade in overlay', this.fade_in_duration)
+            camera.overlay.animate('alpha', 1, this.fade_in_duration)
             setTimeout(() => {
-                camera.overlay.animate('alpha', 0, 1)
+                camera.overlay.animate('alpha', 0, this.fade_out_duration)
                 this.hard_state = value
-            }, 200)
+            }, this.fade_in_duration*1000)
         }
         else {
             this.hard_state = value
