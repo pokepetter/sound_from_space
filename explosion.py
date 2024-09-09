@@ -27,7 +27,8 @@ def skip_time(dt=1/60):
         seq.started = False
 
 explosion = dict(scale=4,
-    start_size=(Vec3(.05,.05,1), Vec3(.07,.07,.05)),
+    # start_size=(Vec3(.05,.05,1), Vec3(.07,.07,.05)),
+    start_size=Vec3(.05,.05,1),
     end_size=Vec3(.025,.025,.0),
     size_curve=curve.linear,
     speed=10,

@@ -562,6 +562,9 @@ function dict(values={}) {
     return values
 }
 
+function hasattr(class_instance, name) {
+    return class_instance.hasOwnProperty(name)
+}
 
 
 __name__ = null // for python compability
