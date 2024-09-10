@@ -7,76 +7,123 @@ set_background_color('#000')
 set_window_color('#111')
 load_font('Orbitron-Black')
 
-SCENE_INDEX = -1
+SCENE_INDEX = 0
 title_screen = Scene(name='title_screen', texture='lyden_fra_verdensrommet_banner.png', z=-2)
 frame = Entity(texture='frame.png', z=-20, scale_x=16/9*1.02, scale_y=1.02)
 
 
-oxygen_meter = HealthBar(position=[.75, .3, -1], rotation=-90, scale_x=.2, scale_y=.03, text_color=color.clear, alpha=.1, bar_color='#c6edf5ee')
+oxygen_meter = HealthBar(position=[.75, .3, -1], rotation=-90, scale_x=.2, scale_y=.03, text_color=color.clear, alpha=.1, bar_color='#c6edf5ee', enabled=False)
 _ = Button(parent=oxygen_meter, font='Orbitron-Black', text='Konsetrasjon \nper m3 i kabinen\n|\n|\n_', text_origin=[-.5,.5], x=-.45, y=1.2, z=-10, text_color=color.white, color=hsv(0,0,1,.0), text_size=.5, enabled=1, t=0)
 
-gravity_meter = HealthBar(position=[.75+.05, .3, -1], rotation=-90, scale_x=.2, scale_y=.03, text_color=color.clear, alpha=.1, bar_color='#c6edf5ee')
-
-# oxygen_meter.bar.alpha=.75
-# oxygen_meter.value = 80
+gravity_meter = HealthBar(position=[.75+.05, .3, -1], rotation=-90, scale_x=.2, scale_y=.03, text_color=color.clear, alpha=.1, bar_color='#c6edf5ee', enabled=False)
 
 
-launch_scene = Scene(name='launch_scene', texture='stars_small.png')
-sun_far = Entity(parent=launch_scene, texture='space_sun_far.jpg', scale=16/9)
+
+launch_scene = Scene(name='launch_scene', texture='stars_small.png', i=0, finished=False)
+sun_far = Entity(parent=launch_scene, texture='space_sun_far.jpg', scale_x=1*16/9, scale_y=1920/(1080*2)*16/9)
+print('---------------', 715/(1080*2))
+blinking_sun = Entity(parent=sun_far, texture='sun_glow', scale=[256/1920*1.2, 256/(1080*2)*1.2], position=[282/(1920/1), 715/(1080*2), -1], t=0)
+blinking_sun.update = def():
+    blinking_sun.t += 1/60 * 12
+    blinking_sun.alpha = .5 + (math.sin(blinking_sun.t) * .25)
 # launch_scene.on_enable = def _():
-door_bot = Entity(parent=launch_scene, texture='airlock_door_bottom.png', origin=[0,.5], scale_x=16/9, scale_y=.5, z=-20)
-door_top = Entity(parent=launch_scene, texture='airlock_door_top.png', origin=[0,-.5], scale_x=16/9, scale_y=.5, z=-20)
+door_top = Entity(parent=camera.ui, texture='airlock_door_top.png', origin=[0,.5], scale_x=16/9, scale_y=.5*1.1, z=-20,
+                closed_position=.5, open_position=1.1)
+door_bot = Entity(parent=camera.ui, texture='airlock_door_bottom.png', origin=[0,-.5], scale_x=16/9, scale_y=.5*1., z=-20, closed_position=-.5, open_position=-1.1)
+door_bot.bg = Entity(parent=door_bot, texture='airlock_door_top.png', origin=[0,.5], z=1, y=1, closed_position=1, open_position=1.05)
+
 launch_scene.on_enable = def():
-    door_top.y = 0
-    door_bot.y = 0
+    door_top.y = door_top.closed_position
+    door_bot.y = door_bot.closed_position
+    door_bot.bg.y = door_bot.bg.closed_position
     sun_far.y = .4
+
+launch_scene.on_exit = def():
+    door_top.y = door_top.t = door_top.open_position
+    door_bot.y = door_bot.open_position
+    door_bot.bg.y = door_bot.bg.open_position
+
 
 launch_scene.input = def input(key):
     if key == 'space':
-        door_top.animate('y', .5, duration=5, curve=curves.linear)
-        door_bot.animate('y', -.5, duration=5, curve=curves.linear)
-        camera.shake(duration=3)
-        sun_far.animate('y', -.4, duration=30)
+        if launch_scene.i == 0:
+            door_top.animate('y', door_top.open_position, duration=5, curve=curves.linear)
+            door_bot.animate('y', door_bot.open_position, duration=5, curve=curves.linear)
+            door_bot.bg.animate('y', door_bot.bg.open_position, duration=5, curve=curves.linear)
+            camera.shake(duration=3)
+            sun_far.animate('y', -.3, duration=30)
 
-# Button(parent=launch_scene, font='Orbitron-Black', text='Oppskytning om\n3...\n2...\n1...', z=-10, text_color=color.light_gray, color=color.clear)
-                     
+        elif launch_scene.i == 1:
+            launch_scene.finished = True
 
-# space_scene = Scene(name='space_scene')
-# space_scene.bg = Entity(parent=space_scene, texture='stars.png', scale_x=16/9, texture_offset=[0,0])
-
-# space_scene.update = def():
-#     space_scene.bg.texture_offset = [space_scene.bg.texture_offset[0]-.00005, space_scene.bg.texture_offset[1]-.00005]
+        launch_scene.i += 1
 
 
-# sun_far_scene = Scene(name='sun_far_scene', texture='stars.png')
-# Button(parent=sun_far_scene, font='Orbitron-Black', text='(solen langt vekke)', text_size=2, z=-10, text_color=color.light_gray, color=color.clear)
-
-sun_scene = Scene(name='sun_scene', texture='stars.png')
+sun_scene = Scene(name='sun_scene', texture='stars.png', i=0, finished=False)
 sun = Entity(parent=sun_scene, texture='sun_bloom.gif', scale=16/9)
-waveform_bg = Entity(parent=sun_scene, scale=[.6*.75,.15*.75], roundness=.1, z=-1, color=hsv(210,1,.3), alpha=.4)
+waveform_bg = Entity(parent=sun_scene, scale=[.6*.75,.15*.75], roundness=.1, z=-1, color=hsv(210,1,.3), alpha=1, texture='scifi_frame')
 waveform = Entity(parent=sun_scene, texture='waveform_2.gif', scale=[.5*.75,.15*.75], roundness=.1, z=-1, y=0, x=0)
 
 sun_scene.on_enable = def():
-    print('goto sun')
+    waveform_bg.enabled = False
+    waveform.enabled = False
     sun.y = .39
     sun.animate('y', -.1, duration=60, curve=curves.linear)
-    
-    waveform_bg.scale = [0,0]
-    waveform.alpha = 0
+    sun_scene.finished = False
 
-    after 2:
-        waveform_bg.animate('scale_y', .15*.75, duration=.2)
-        after .1:
-            waveform_bg.animate('scale_x', .6*.75, duration=.5)
+sun_scene.input = def input(key):
+    if key == 'space':
+        if sun_scene.i == 0:
+            waveform_bg.scale = [0,0]
+            waveform.alpha = 0
+            print('show waveform')
+            waveform_bg.enabled = True
+            waveform.enabled = True
+            waveform_bg.animate('scale_y', .15*.75, duration=.2)
+            after .1:
+                waveform_bg.animate('scale_x', .6*.75, duration=.5)
+                after .5:
+                    waveform.animate('alpha', .9, duration=1)
+        
+        elif sun_scene.i == 1:
+            waveform.animate('alpha', 0, duration=1)
             after .5:
-                waveform.animate('alpha', .9, duration=1)
+                waveform_bg.animate('scale_x', 0, duration=.5)
+                after .5:
+                    waveform_bg.animate('scale_y', 0, duration=.5)
+            print('close waveform. sun scene finshed')
+        
+        elif sun_scene.i == 2:
+            sun_scene.finished = True
+
+        sun_scene.i += 1
     # show_info(title='Sol', description='', character_duration=.2)
 
-ISS_scene = Scene(name='ISS_scene', texture='stars_small.png')
-iss_video = Button(parent=ISS_scene, scale=.7, text='ISS-video')
-ISS_scene.on_enable = def():
-    iss_video.appear()
-# ISS_video = Video()
+iss_scene = Scene(name='ISS_scene', texture='stars_small.png', i=0, finished=False)
+iss_scene.video_frame = Entity(parent=iss_scene, scale=[.8*16/9,.8], y=.1, texture='scifi_frame', enabled=False)
+iss_video = Button(parent=iss_scene.video_frame, scale=.8, text='ISS-video', enabled=False, roundness=.01)
+iss_scene.on_enable = def():
+    iss_scene.video_frame.enabled = False
+    # video_frame.scale = .7
+
+iss_scene.input = def input(key):
+    if key == 'space':
+        if iss_scene.i == 0:
+            iss_scene.video_frame.appear()
+            iss_video.enabled = True
+            iss_video.alpha = 0
+            after 1.5:
+                iss_video.animate('alpha', 1, duration=.5)
+        
+        elif iss_scene.i == 1:
+            iss_video.animate('alpha', 0, duration=.25)
+            iss_scene.video_frame.close()
+
+        elif iss_scene.i == 2:
+            iss_scene.finished = True
+
+        iss_scene.i += 1
+
 
 
 asteroid_scene = Scene(name='asteroid_scene', texture='stars_small.png')
@@ -95,7 +142,7 @@ asteroid_scene.on_enable = def():
     show_info(title='Asteroidebeltet', description='Sted: Mellom Mars og Jupiter\nAvstand fra Solen: 2 - 3.3 AU\nAntall: 1-2 millioner > ⌀1km\n Dvergplaneter: Ceres', character_duration=.05)
 
     # hyperjump.enabled = False
-asteroid_0 = Entity(parent=asteroid_scene, texture='asteroid_0.png', scale=0)
+# asteroid_0 = Entity(parent=asteroid_scene, texture='asteroid_0.png', scale=0)
 # asteroid_direction = -1
 # asteroid_scene.input = def input(key):
 #     if key == 'space':
@@ -122,16 +169,43 @@ asteroid_0 = Entity(parent=asteroid_scene, texture='asteroid_0.png', scale=0)
 #         else:
 #             asteroid_direction = 1
 
-# asteroid_avoidance_game =
+asteroid_avoidance_scene = Scene(name='asteroid_avoidance_scene', texture='stars_small.png', t=0)
+asteroid_parent = Entity(parent=asteroid_avoidance_scene)
+asteroids = [Entity(parent=asteroid_parent, texture='asteroid_0.png', scale=0, x=i%2) for i in range(5)]
+asteroid_avoidance_scene.on_enable = def():
+    for e in asteroids:
+        e.scale = 0
+        e.xy = [0,0]
+
+    asteroids[0].animate('scale_x', 1.5, duration=5, curve=curves.in_expo)
+    asteroids[0].animate('scale_y', 1.5, duration=5, curve=curves.in_expo)
+    after 1:
+        asteroids[0].animate('x', 2, duration=4, curve=curves.in_expo)
+
+# asteroid_avoidance_scene.update = def():
+#     asteroid_avoidance_scene.t += 1/60 * .2
+#     if asteroid_avoidance_scene.t >= 1:
+#         asteroid_avoidance_scene.t = 0
+#     asteroids[0].scale_x = asteroid_avoidance_scene.t
+#     asteroids[0].scale_y = asteroid_avoidance_scene.t
+#     asteroids[0].x = asteroid_avoidance_scene.t + .1
+    
+# asteroid_avoidance_scene.input = def input(key):
+#     if key == 'space':
+#         if asteroid_avoidance_scene.i == 0:
+
+
+#         asteroid_avoidance_scene.i += 1
+
 
 europa_scene = Scene(name='europa_scene', texture='stars_small.png', i=0, finished=False)
 europa = Entity(parent=europa_scene, texture='europa.png')
+europa_scene.white_cover = Entity(parent=europa_scene, scale=3, alpha=0, z=-12)
 europa_scene.on_enable = def():
     europa.scale_x = 16/9 * 1
     europa.scale_y = 1
     europa.xy = [0,0]
     
-    print('europa')
     europa.y = -.15
     duration= 30
     europa.animate('y', 0, duration=duration)
@@ -139,26 +213,25 @@ europa_scene.on_enable = def():
     # europa.animate('scale_y', 1, duration=duration)
     show_info(title='Europa', description='Gjennomsnittsfart\n13,74 km/s\nInklinasjon	0,47°\nModerplanet	Jupiter', character_duration=.05)
     
-europa_scene.white_cover = Entity(parent=europa_scene, scale=3, alpha=0, z=-12)
-# emergency_landing_prompt = Button(parent=europa_scene, font='Orbitron-Black', text='Starter nødlanding', z=-10, text_color=color.light_gray, color=color.clear)
 
 europa_scene.input = def input(key):
     if key == 'space':
-        europa.y = -.15
-        reset_text()
-        europa.animate('scale_y', 1.5, duration=5, curve=curves.in_expo)
-        europa.animate('scale_x', 16/9*1.5, duration=5, curve=curves.in_expo)
-        camera.shake(duration=3)
-        show_warning('Starter nødlanding...')
-        after 2s:
-            europa_scene.white_cover.animate('alpha', 1, duration=2, curve=curves.in_expo)
-            after 4s:
-                travel_to(SCENE_INDEX+1)
-                europa_scene.white_cover.animate('alpha', 0, duration=3)
-        
-        europa_scene.finished = True
+        if europa_scene.i == 0:
+            europa.y = -.15
+            reset_text()
+            europa.animate('scale_y', 1.5, duration=5, curve=curves.in_expo)
+            europa.animate('scale_x', 16/9*1.5, duration=5, curve=curves.in_expo)
+            camera.shake(magnitude=.5, duration=3)
+            show_warning('Starter nødlanding...')
+            after 2s:
+                europa_scene.white_cover.animate('alpha', 1, duration=2, curve=curves.in_expo)
+                # after 4s:
+                #     travel_to(SCENE_INDEX+1)
+        elif europa_scene.i == 1:
+            europa_scene.finished = True
+            europa_scene.white_cover.animate('alpha', 0, duration=3)
 
-    # b = Button(parent=europa_scene, text='EUROPA', z=-10, text_color=color.light_gray, color=color.clear)
+        europa_scene.i += 1
 
 underwater_scene = Scene(name='underwater_scene', texture='underwater_2.png', i=0, finished=False)
 underwater_graphics = Entity(parent=underwater_scene, texture='underwater_2.png', scale_x=16/9, texture_offset=[0,0])
@@ -177,8 +250,21 @@ underwater_scene.input = def input(key):
     if key == 'space':
         if underwater_scene.i == 0:
             print('open eye')
+        
         elif underwater_scene.i == 1:
+            show_warning('⚠️')
+
+        elif underwater_scene.i == 2:
+            show_warning('⚠️ Kritisk oksygennivå ⚠️')
+
+        elif underwater_scene.i == 3:
+            stop_warning()
+
+        elif underwater_scene.i == 4:
             show_hyperjump_warning()
+
+        elif underwater_scene.i == 5:
+            print('finish underwater scene')
             underwater_scene.finished = True
 
         underwater_scene.i += 1
@@ -209,7 +295,7 @@ def show_hyperjump_warning():
     print('show hyperjump warning')
     show_warning('Starter hyperhopp...', color.azure)
 
-gravity_scene = Scene(name='gravity_scene', i=0)
+gravity_scene = Scene(name='gravity_scene', i=0, finished=False)
 gravity_scene.stars = Entity(parent=gravity_scene, texture='stars.png', scale_x=16/9, texture_offset=[0,0])
 gravity_scene.on_enable = def():
     hyperjump.enabled = True
@@ -219,22 +305,42 @@ gravity_scene.input = def input(key):
         print('--', gravity_scene.i)
         if gravity_scene.i == 0:
             gravity_meter.value = 20
-        if gravity_scene.i == 1:
             show_warning('⚠️ Advarsel ⚠️\nLav gravitasjon')
-        if gravity_scene.i == 2:
+            # camera.shake()
+        if gravity_scene.i == 1:
             stop_warning()
+
+        if gravity_scene.i == 2:
+            gravity_scene.finished = True
+
         gravity_scene.i += 1
-        camera.shake()
 
 
 gravity_scene.update = def():
     gravity_scene.stars.texture_offset = [gravity_scene.stars.texture_offset[0]-.00005, gravity_scene.stars.texture_offset[1]-.00005]
         
 
-mixolydia_centauri_scene = Scene(name='mixolydia_centauri_scene', texture='stars.png')
+mixolydia_centauri_scene = Scene(name='mixolydia_centauri_scene', texture='stars.png', i=0, finished=False)
 # Entity(parent=mixolydia_centauri_scene, scale=.2, text='mixolydia_centauri').fit_to_text()
 # mixolydia_bg = Entity(parent=mixolydia_centauri_scene, texture='stars.png', scale_x=16/9, z=1)
 mixolydia = Entity(parent=mixolydia_centauri_scene, texture='mixolydia_centauri.png', scale_x=16/9, z=-1)
+# incoming_transmission = Button(parent=mixolydia_centauri_scene, font='Orbitron-Black', text='Incoming Transmission', z=-10, text_color=color.light_gray, color=color.clear, enabled=False)
+# incoming_transmission.fit_to_text()
+mixolydia_centauri_scene.video_frame = Entity(parent=mixolydia_centauri_scene, scale=[.8*16/9,.8], y=.1, texture='scifi_frame', enabled=False, z=-2)
+alien_video_bg = Button(parent=mixolydia_centauri_scene.video_frame, scale=.8, enabled=False, roundness=.01, texture='stars_small.png')
+mixolydia_centauri_scene.on_enable = def():
+    mixolydia_centauri_scene.video_frame.enabled = False
+    alien_video_bg.alpha = 0
+
+alien_video = Entity(parent=alien_video_bg, scale=.9, texture='LaV_AlienDesign2.2.png', roundness=.05, z=-1, alpha=0)
+
+red_star = Entity(parent=mixolydia, texture='red_star.png', scale_y=.1*16/9, scale_x=.1, t=0)
+red_star.update = def():
+    red_star.t += 1/60 * 16
+    red_star.alpha = .75 + (sin(red_star.t) * .125)
+    red_star.scale_x = (.75 + (sin(red_star.t) * .025)) * .15
+    red_star.scale_y = (.75 + (sin(red_star.t) * .025)) * .15 * 16/9
+
 mixolydia_centauri_scene.on_enable = def():
     mixolydia.y = .3
     # hyperjump.enabled = True
@@ -243,24 +349,54 @@ mixolydia_centauri_scene.on_enable = def():
     after 5:
         show_info(title='Mixolydia\nCentauri', description='Alder ???år\nAntall planeter ???\nStjerner ???\nLiv ???\nOrbital hastighet 720 000 km/t\nOmløpsperiode ~230 millioner år', character_duration=.05)
 
+mixolydia_centauri_scene.input = def input(key):
+    if key == 'space':
+        if mixolydia_centauri_scene.i == 0:
+            show_warning('Innkommende signal...\nAksepter?\n[Nei] [Ja]')
+        
+        elif mixolydia_centauri_scene.i == 1:
+            stop_warning()
+            mixolydia_centauri_scene.video_frame.appear()
+            alien_video_bg.enabled = True
+            alien_video_bg.alpha = 0
+            alien_video.enabled = True
+            alien_video.alpha = 0
+            after 1:
+                alien_video_bg.animate('alpha', 1, duration=.2)
+                alien_video.animate('alpha', 1, duration=.5)
+
+        elif mixolydia_centauri_scene.i == 2:
+            print('show face')
+
+        elif mixolydia_centauri_scene.i == 3:
+            print('show body')
+
+        elif mixolydia_centauri_scene.i == 4:
+            print('close video')
+            alien_video.animate('alpha', 0, duration=.5)
+            alien_video_bg.animate('alpha', 0, duration=.5)
+            mixolydia_centauri_scene.video_frame.close()
+
+        else:
+            mixolydia_centauri_scene.finished = True
+
+        mixolydia_centauri_scene.i += 1
+
+
 #  nterference/white noise
-alien_scene = Scene(name='alien', texture='mixolydia_centauri.png')
-incoming_transmission = Button(parent=alien_scene, font='Orbitron-Black', text='Incoming Transmission', z=-10, text_color=color.light_gray, color=color.clear)
-incoming_transmission.fit_to_text()
+# alien_scene = Scene(name='alien', texture='mixolydia_centauri.png')
 
-# Entity(parent=alien_scene, scale=.2, text='alien_scene').fit_to_text()
-video_transmission = Entity(parent=alien_scene, scale=[16/9*.4, .4], texture='scary_alien.gif', roundness=.1)
 
-alien_scene.on_enable = def():
-    incoming_transmission.enabled = False
-    video_transmission.enabled = False
+# alien_scene.on_enable = def():
+#     incoming_transmission.enabled = False
+#     video_transmission.enabled = False
     
-alien_scene.input = def input(key):
-    incoming_transmission.enabled = True
-    after 3s:
-        video_transmission.scale_y = 0
-        video_transmission.enabled = True 
-        video_transmission.animate('scale_y', .4, duration=.5)
+# alien_scene.input = def input(key):
+#     incoming_transmission.enabled = True
+#     after 3s:
+#         video_transmission.scale_y = 0
+#         video_transmission.enabled = True 
+#         video_transmission.animate('scale_y', .4, duration=.5)
 
 
 central_star_explosion_scene = Scene(name='central_star_explosion', texture='mixolydia_centauri.png')
@@ -274,31 +410,40 @@ pale_blue_dot_scene = Scene(name='pale_blue_dot')
 pale_blue_dot = Entity(parent=pale_blue_dot_scene, texture='pale_blue_dot.jpg', scale=[3/2*1.75, 1.75])
 pale_blue_dot_scene.on_enable = def():
     pale_blue_dot.xy = [.3,.2]
-    pale_blue_dot.animate('x', 0, duration=60, curve=curves.linear)
-    pale_blue_dot.animate('y', 0, duration=60, curve=curves.linear)
+    pale_blue_dot.animate('x', 0, duration=50, curve=curves.linear)
+    pale_blue_dot.animate('y', 0, duration=50, curve=curves.linear)
 
 
 
-terra_scene = Scene(name='terra', texture='stars.png')
+terra_scene = Scene(name='terra', texture='stars.png', i=0, finished=False)
 terra = Entity(parent=terra_scene, texture='terra.png', scale_x=16/9)
-terra.door_bot = Entity(parent=terra_scene, texture='airlock_door_bottom.png', origin=[0,.5], scale_x=16/9, scale_y=.5, z=-20)
-terra.door_top = Entity(parent=terra_scene, texture='airlock_door_top.png', origin=[0,-.5], scale_x=16/9, scale_y=.5, z=-20)
 # naso_logo = Entity(parent=terra_scene, texture='NASO_transparent.png', scale_x=3599/2312*.5, scale_y=.5)
 
 terra_scene.on_enable = def():
     hyperjump.enabled = True
     # naso_logo.alpha = 0
     terra.y = -.5
-    terra.door_top.y = .5
-    terra.door_bot.y = -.5
+
+    door_top.y = door_top.open_position
+    door_bot.y = door_bot.open_position
+    door_bot.bg.y = door_bot.bg.open_position
+
     after 6s:
         terra.animate('y', 0, duration=50)
 
 terra_scene.input = def input(key):
     if key == 'space':
-        terra.door_top.animate('y', 0, duration=1)
-        terra.door_bot.animate('y', 0, duration=1)
+        if terra_scene.i == 0:
+            door_top.animate('y', door_top.closed_position, duration=5)
+            door_bot.animate('y', door_bot.closed_position, duration=5)
+            door_bot.bg.animate('y', door_bot.bg.closed_position)
 
+        elif terra_scene.i == 1:
+            terra_scene.finished = True
+
+        terra_scene.i += 1
+
+end_scene = Scene(name='end_scene', color=color.black, scale=2)
 
 # hyperjump_scene = Scene(name='hyperjump', texture='')
 hyperjump_duration = 3
@@ -396,18 +541,18 @@ goto_scene(launch_scene)
 scenes = [
 launch_scene,
 sun_scene, 
-ISS_scene,
+iss_scene,
 asteroid_scene, 
+asteroid_avoidance_scene,
 europa_scene,
 underwater_scene,
 gravity_scene, 
 mixolydia_centauri_scene,
-alien_scene,
 central_star_explosion_scene,
 mixolydia_centauri_with_moons_scene,
 pale_blue_dot_scene, 
 terra_scene, 
-title_screen,
+end_scene
 ]
 
 def travel_to(index):
@@ -418,12 +563,13 @@ def travel_to(index):
     index = clamp(index, 0, len(scenes)-1)
     hyperjump.enabled = False
     reset_text(hard=True)
-    goto_scene(scenes[index])
-    gravity_meter.enabled = True
-    oxygen_meter.enabled = True
-    # if hyperjump.white_cover.alpha > 0:
-    #     print('dafe out hyperjup white cover')
-    #     hyperjump.white_cover.animate('alpha', 0, duration=5)
+    target_scene = scenes[index]
+    if hasattr(target_scene, 'finished'):
+        target_scene.finished = False
+        target_scene.i = 0
+
+    goto_scene(target_scene)
+
 
 IS_IN_HYPERJUMP = False
 
@@ -442,8 +588,18 @@ def input(key):
         stop_all_invokes()
         travel_to(SCENE_INDEX)
 
-    if key == 'space' or key == 'right arrow' and not IS_IN_HYPERJUMP:
-        if not hasattr(scene, 'finished') or scene.finished:
+    if key == 'space' or key == 'right arrow':
+        if IS_IN_HYPERJUMP:
+            print("IS_IN_HYPERJUMP, so don't go to next scene yet")
+            return
+        
+        current_scene = scenes[SCENE_INDEX]
+        if not hasattr(current_scene, 'finished'):
+            print(current_scene.name, 'has not attr: "finished"')
+        
+        print('current_scene:', current_scene.name, 'finished:', current_scene.finished)
+        if not hasattr(current_scene, 'finished') or current_scene.finished:
+            print('go next')
             SCENE_INDEX += 1
             SCENE_INDEX = clamp(SCENE_INDEX, 0, len(scenes)-1)
             travel_to(SCENE_INDEX)
