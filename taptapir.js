@@ -729,6 +729,15 @@ class Entity {
             destroy(this._popup_bg)
         }
     }
+    stop_animating(variable_name) {
+        if (variable_name in this.setTimeout_calls) {
+            for (const id of this.setTimeout_calls[variable_name]) {
+                clearTimeout(id)
+                // print('clear:', id)
+            }
+        }
+        this.setTimeout_calls[variable_name] = []
+    }
 
     animate(variable_name, target_value, duration=.1, curve=curves.linear) {
         // print('animate:', variable_name, target_value)
@@ -738,6 +747,7 @@ class Entity {
         }
         let entity = this
         // stop ongoing animation of this varibale
+        this.stop_animating(variable_name)
         if (variable_name in entity.setTimeout_calls) {
             for (const id of entity.setTimeout_calls[variable_name]) {
                 clearTimeout(id)
