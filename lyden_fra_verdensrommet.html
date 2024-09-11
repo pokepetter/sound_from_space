@@ -8,12 +8,15 @@ set_window_color('#111')
 load_font('Orbitron-Black')
 
 SCENE_INDEX = 0
+IS_IN_HYPERJUMP = False
+
+
 title_screen = Scene(name='title_screen', texture='lyden_fra_verdensrommet_banner.png', z=-2)
 frame = Entity(texture='frame.png', z=-20, scale_x=16/9*1.02, scale_y=1.02)
 
 
 oxygen_meter = HealthBar(position=[.75, .3, -1], rotation=-90, scale_x=.2, scale_y=.03, text_color=color.clear, alpha=.1, bar_color='#c6edf5ee', enabled=False)
-_ = Button(parent=oxygen_meter, font='Orbitron-Black', text='Konsetrasjon \nper m3 i kabinen\n|\n|\n_', text_origin=[-.5,.5], x=-.45, y=1.2, z=-10, text_color=color.white, color=hsv(0,0,1,.0), text_size=.5, enabled=1, t=0)
+# _ = Button(parent=oxygen_meter, font='Orbitron-Black', text='Konsetrasjon \nper m3 i kabinen\n|\n|\n_', text_origin=[-.5,.5], x=-.45, y=1.2, z=-10, text_color=color.white, color=hsv(0,0,1,.0), text_size=.5, enabled=1, t=0)
 
 gravity_meter = HealthBar(position=[.75+.05, .3, -1], rotation=-90, scale_x=.2, scale_y=.03, text_color=color.clear, alpha=.1, bar_color='#c6edf5ee', enabled=False)
 
@@ -21,7 +24,6 @@ gravity_meter = HealthBar(position=[.75+.05, .3, -1], rotation=-90, scale_x=.2, 
 
 launch_scene = Scene(name='launch_scene', texture='stars_small.png', i=0, finished=False)
 sun_far = Entity(parent=launch_scene, texture='space_sun_far.jpg', scale_x=1*16/9, scale_y=1920/(1080*2)*16/9)
-print('---------------', 715/(1080*2))
 blinking_sun = Entity(parent=sun_far, texture='sun_glow', scale=[256/1920*1.2, 256/(1080*2)*1.2], position=[282/(1920/1), 715/(1080*2), -1], t=0)
 blinking_sun.update = def():
     blinking_sun.t += 1/60 * 12
@@ -76,7 +78,6 @@ sun_scene.input = def input(key):
         if sun_scene.i == 0:
             waveform_bg.scale = [0,0]
             waveform.alpha = 0
-            print('show waveform')
             waveform_bg.enabled = True
             waveform.enabled = True
             waveform_bg.animate('scale_y', .15*.75, duration=.2)
@@ -136,66 +137,72 @@ asteroid_scene.update = def():
     asteroid_mg.texture_offset = [asteroid_mg.texture_offset[0]-(.0001*5), asteroid_mg.texture_offset[1]-(.00007*5)]
     asteroid_fg.texture_offset = [asteroid_fg.texture_offset[0]-(.0001*24), asteroid_fg.texture_offset[1]-(.00007*24)]
     asteroid_fg_2.texture_offset = [asteroid_fg_2.texture_offset[0]-(.0001*18), asteroid_fg_2.texture_offset[1]-(.00007*18)]
-    # asteroid_scene.rotation += 3
-# set_scale(.95)
+
+
 asteroid_scene.on_enable = def():
     show_info(title='Asteroidebeltet', description='Sted: Mellom Mars og Jupiter\nAvstand fra Solen: 2 - 3.3 AU\nAntall: 1-2 millioner > ⌀1km\n Dvergplaneter: Ceres', character_duration=.05)
 
-    # hyperjump.enabled = False
-# asteroid_0 = Entity(parent=asteroid_scene, texture='asteroid_0.png', scale=0)
-# asteroid_direction = -1
-# asteroid_scene.input = def input(key):
-#     if key == 'space':
-#         asteroid_0.scale = [.4,.4]
-#         asteroid_0.xy = [.6*16/9,.6]
-#         asteroid_0.animate('scale_x', 5, duration=5, curve=curves.out_expo)
-#         asteroid_0.animate('scale_y', 5, duration=5, curve=curves.out_expo)
-#         # asteroid_0.animate('rotation', 80, duration=2)
 
-#         after 1:
-#             asteroid_0.animate('x', -3*asteroid_direction, duration=2, curve=curves.out_expo)
-#             asteroid_0.animate('y', -.4*asteroid_direction, duration=2)
-        
-#             asteroid_bg.animate('x', -.1*asteroid_direction, duration=2)
-#             asteroid_mg.animate('x', -.2*asteroid_direction, duration=2)
-#             asteroid_fg.animate('x', -.3*asteroid_direction, duration=2)
-        
-#             after 2:
-#                 asteroid_bg.animate('x', 0, duration=2)
-#                 asteroid_mg.animate('x', 0, duration=2)
-#                 asteroid_fg.animate('x', 0, duration=2)
-#         if asteroid_direction == 1:
-#             asteroid_direction = -1
-#         else:
-#             asteroid_direction = 1
+asteroid_avoidance_scene = Scene(name='asteroid_avoidance_scene', texture='stars_small.png', t=0, spin=False, spin_speed=0, finished=False)
+asteroid_avoidance_scene.overlay = Entity(parent=asteroid_avoidance_scene, scale=2, color=color.black, alpha=0, z=-3)
+asteroid_parent = Entity(parent=asteroid_avoidance_scene, visible_self=False)
+asteroid_avoidance_scene.bg = Entity(texture='stars_small.png', scale_x=16/9*2, scale_y=2, tileset_size=[.5,.5], parent=asteroid_parent)
 
-asteroid_avoidance_scene = Scene(name='asteroid_avoidance_scene', texture='stars_small.png', t=0)
-asteroid_parent = Entity(parent=asteroid_avoidance_scene)
-asteroids = [Entity(parent=asteroid_parent, texture='asteroid_0.png', scale=0, x=i%2) for i in range(5)]
+asteroids = [Entity(parent=asteroid_parent, texture='asteroid_0.png', scale=0, x=i%2, z=-1) for i in range(2)]
+asteroid_avoidance_scene.asteroid_mg = Entity(parent=asteroid_parent, texture='asteroid_field_bg.png', scale_x=16/9*1.1, scale_y=1.1, texture_offset=[0,0])
+asteroid_avoidance_scene.asteroid_mg = Entity(parent=asteroid_parent, texture='asteroid_field_mg.png', scale_x=16/9*1.1, scale_y=1.1, x=.7, rotation=-45, texture_offset=[0,0])
+asteroid_avoidance_scene.asteroid_mg2 = Entity(parent=asteroid_parent, texture='asteroid_field_mg.png', scale_x=16/9*1.1, scale_y=1.1, x=-.7,y=.2, rotation=0, texture_offset=[0,0])
+
 asteroid_avoidance_scene.on_enable = def():
-    for e in asteroids:
+    asteroid_avoidance_scene.spin = False
+    asteroid_avoidance_scene.spin_speed = 0
+    asteroid_avoidance_scene.overlay.alpha = 0
+
+    for i, e in asteroids:
         e.scale = 0
         e.xy = [0,0]
 
-    asteroids[0].animate('scale_x', 1.5, duration=5, curve=curves.in_expo)
-    asteroids[0].animate('scale_y', 1.5, duration=5, curve=curves.in_expo)
-    after 1:
-        asteroids[0].animate('x', 2, duration=4, curve=curves.in_expo)
+        after i * 4.5:
+            direction = -1
+            if i%2 == 0:
+                direction = 1
+            asteroids[i].animate('scale_x', 4, duration=5, curve=curves.in_expo)
+            asteroids[i].animate('scale_y', 4, duration=5, curve=curves.in_expo)
+            asteroids[i].animate('rotation', 180*direction, duration=5, curve=curves.linear)
+            after 2.5:
+                direction = -1
+                if i%2 == 0:
+                    direction = 1
+                asteroids[i].animate('x', 5*direction, duration=2, curve=curves.in_expo)
+                asteroids[i].animate('y', -.5*direction, duration=2, curve=curves.in_expo)
+                asteroid_parent.animate('rotation', -5*direction, duration=2, curve=curves.linear)
+                asteroid_parent.animate('x', .05*direction, duration=2, curve=curves.in_out_expo)
+                asteroid_avoidance_scene.asteroid_mg.animate('x', .7+(.05*direction), duration=2, curve=curves.linear)
+                asteroid_avoidance_scene.asteroid_mg2.animate('x', -.7+(.05*direction), duration=2, curve=curves.linear)
+                after 2:
+                    asteroid_parent.animate('rotation', 0, duration=2, curve=curves.linear)
+                    asteroid_parent.animate('x', 0, duration=2, curve=curves.linear)
+                    asteroid_avoidance_scene.asteroid_mg.animate('x', .7, duration=2, curve=curves.linear)
+                    asteroid_avoidance_scene.asteroid_mg2.animate('x', -.7, duration=2, curve=curves.linear)
+        after len(asteroids) * 4.5:
+            asteroid_avoidance_scene.spin = True
+            show_warning('Truffet')
+            after 1:
+                asteroid_parent.animate('y', .1, duration=8, curve=curves.in_expo)
+                after 4:
+                    stop_warning()
+                    asteroid_avoidance_scene.overlay.animate('alpha', 1, duration=2)
+                    after 2:
+                        asteroid_avoidance_scene.spin = False
+                        asteroid_avoidance_scene.finished = True
+                        
+        
+asteroid_avoidance_scene.update = def():
+    if asteroid_avoidance_scene.spin:
+        asteroid_parent.rotation += 1/60 * -asteroid_avoidance_scene.spin_speed
+        asteroid_avoidance_scene.spin_speed += .1
 
-# asteroid_avoidance_scene.update = def():
-#     asteroid_avoidance_scene.t += 1/60 * .2
-#     if asteroid_avoidance_scene.t >= 1:
-#         asteroid_avoidance_scene.t = 0
-#     asteroids[0].scale_x = asteroid_avoidance_scene.t
-#     asteroids[0].scale_y = asteroid_avoidance_scene.t
-#     asteroids[0].x = asteroid_avoidance_scene.t + .1
-    
-# asteroid_avoidance_scene.input = def input(key):
-#     if key == 'space':
-#         if asteroid_avoidance_scene.i == 0:
 
-
-#         asteroid_avoidance_scene.i += 1
 
 
 europa_scene = Scene(name='europa_scene', texture='stars_small.png', i=0, finished=False)
@@ -219,17 +226,20 @@ europa_scene.input = def input(key):
         if europa_scene.i == 0:
             europa.y = -.15
             reset_text()
-            europa.animate('scale_y', 1.5, duration=5, curve=curves.in_expo)
-            europa.animate('scale_x', 16/9*1.5, duration=5, curve=curves.in_expo)
+            europa.animate('scale_y', 2, duration=5, curve=curves.in_expo)
+            europa.animate('scale_x', 16/9*2, duration=5, curve=curves.in_expo)
             camera.shake(magnitude=.5, duration=3)
             show_warning('Starter nødlanding...')
             after 2s:
+                stop_warning()
                 europa_scene.white_cover.animate('alpha', 1, duration=2, curve=curves.in_expo)
+                europa_scene.white_cover.animate('color', color.black, duration=2, curve=curves.in_expo)
                 # after 4s:
                 #     travel_to(SCENE_INDEX+1)
         elif europa_scene.i == 1:
             europa_scene.finished = True
-            europa_scene.white_cover.animate('alpha', 0, duration=3)
+            after 1:
+                europa_scene.white_cover.animate('alpha', 0, duration=3)
 
         europa_scene.i += 1
 
@@ -237,12 +247,15 @@ underwater_scene = Scene(name='underwater_scene', texture='underwater_2.png', i=
 underwater_graphics = Entity(parent=underwater_scene, texture='underwater_2.png', scale_x=16/9, texture_offset=[0,0])
 underwater_cover = Entity(parent=underwater_scene, scale=2, color=color.black, z=-2)
 ice_effect = Entity(parent=underwater_scene, scale_x=16/9, texture='freeze_effect.png', z=-1, alpha=1)
+underwater_eye = Entity(parent=underwater_graphics, scale=.1, xy=[-.05,.1], text='👁️', text_size=2, text_origin=[0,0], color=hsv(0,0,.2,.5), enabled=False)
 underwater_scene.on_enable = def():
     underwater_graphics.y = -.1
     underwater_graphics.animate('y', 0, duration=30, curve=curves.out_expo)
     underwater_cover.alpha = 1
     underwater_cover.animate('alpha', 0, duration=10)
     ice_effect.alpha = 0
+    underwater_eye.enabled = False
+
     after 2:
         ice_effect.animate('alpha', 1, duration=10)
     # show_info(title='Europa', description='Alder ???år\nAntall planeter ???\nStjerner ???\nLiv ???\nOrbital hastighet 720 000 km/t\nOmløpsperiode ~230 millioner år', character_duration=.05)
@@ -250,6 +263,7 @@ underwater_scene.input = def input(key):
     if key == 'space':
         if underwater_scene.i == 0:
             print('open eye')
+            underwater_eye.enabled = True
         
         elif underwater_scene.i == 1:
             show_warning('⚠️')
@@ -326,13 +340,15 @@ mixolydia_centauri_scene = Scene(name='mixolydia_centauri_scene', texture='stars
 mixolydia = Entity(parent=mixolydia_centauri_scene, texture='mixolydia_centauri.png', scale_x=16/9, z=-1)
 # incoming_transmission = Button(parent=mixolydia_centauri_scene, font='Orbitron-Black', text='Incoming Transmission', z=-10, text_color=color.light_gray, color=color.clear, enabled=False)
 # incoming_transmission.fit_to_text()
-mixolydia_centauri_scene.video_frame = Entity(parent=mixolydia_centauri_scene, scale=[.8*16/9,.8], y=.1, texture='scifi_frame', enabled=False, z=-2)
-alien_video_bg = Button(parent=mixolydia_centauri_scene.video_frame, scale=.8, enabled=False, roundness=.01, texture='stars_small.png')
+mixolydia_centauri_scene.video_frame = Entity(parent=mixolydia_centauri_scene, scale=[.85*16/9,.85], y=.1, texture='scifi_frame', enabled=False, z=-2)
+alien_video_bg = Button(parent=mixolydia_centauri_scene.video_frame, scale=.75, enabled=False, roundness=.01, texture='stars_small.png', name='alien_video_bg')
 mixolydia_centauri_scene.on_enable = def():
     mixolydia_centauri_scene.video_frame.enabled = False
     alien_video_bg.alpha = 0
 
-alien_video = Entity(parent=alien_video_bg, scale=.9, texture='LaV_AlienDesign2.2.png', roundness=.05, z=-1, alpha=0)
+alien_video = Entity(parent=alien_video_bg, scale=2, y=-.5, texture='LaV_AlienDesign2.2.png', roundness=.05, z=-1, alpha=0)
+# alien_video.model.style.overflow = 'hidden'
+alien_video_bg.el.style.overflow = 'hidden'
 
 red_star = Entity(parent=mixolydia, texture='red_star.png', scale_y=.1*16/9, scale_x=.1, t=0)
 red_star.update = def():
@@ -369,6 +385,9 @@ mixolydia_centauri_scene.input = def input(key):
             print('show face')
 
         elif mixolydia_centauri_scene.i == 3:
+            alien_video.animate('scale_x', 1.2, duration=1)
+            alien_video.animate('scale_y', 1.2, duration=1)
+            alien_video.animate('y', -.1, duration=1)
             print('show body')
 
         elif mixolydia_centauri_scene.i == 4:
@@ -410,13 +429,14 @@ pale_blue_dot_scene = Scene(name='pale_blue_dot')
 pale_blue_dot = Entity(parent=pale_blue_dot_scene, texture='pale_blue_dot.jpg', scale=[3/2*1.75, 1.75])
 pale_blue_dot_scene.on_enable = def():
     pale_blue_dot.xy = [.3,.2]
-    pale_blue_dot.animate('x', 0, duration=50, curve=curves.linear)
-    pale_blue_dot.animate('y', 0, duration=50, curve=curves.linear)
+    pale_blue_dot.animate('x', 0, duration=40, curve=curves.linear)
+    pale_blue_dot.animate('y', 0, duration=40, curve=curves.linear)
 
 
 
 terra_scene = Scene(name='terra', texture='stars.png', i=0, finished=False)
 terra = Entity(parent=terra_scene, texture='terra.png', scale_x=16/9)
+terra_scene.overlay = Entity(parent=camera.ui, scale=2, color=color.black, alpha=0, z=-100)
 # naso_logo = Entity(parent=terra_scene, texture='NASO_transparent.png', scale_x=3599/2312*.5, scale_y=.5)
 
 terra_scene.on_enable = def():
@@ -439,11 +459,12 @@ terra_scene.input = def input(key):
             door_bot.bg.animate('y', door_bot.bg.closed_position)
 
         elif terra_scene.i == 1:
+            terra_scene.overlay.animate('alpha', 1, duration=5)
             terra_scene.finished = True
 
         terra_scene.i += 1
 
-end_scene = Scene(name='end_scene', color=color.black, scale=2)
+# end_scene = Scene(name='end_scene', color=color.black, scale=2)
 
 # hyperjump_scene = Scene(name='hyperjump', texture='')
 hyperjump_duration = 3
@@ -536,7 +557,7 @@ def reset_text(hard=False):
 
 scene_handler.fade_in_duration = .5
 scene_handler.fade_out_duration = 4
-goto_scene(launch_scene)
+
 
 scenes = [
 launch_scene,
@@ -552,7 +573,6 @@ central_star_explosion_scene,
 mixolydia_centauri_with_moons_scene,
 pale_blue_dot_scene, 
 terra_scene, 
-end_scene
 ]
 
 def travel_to(index):
@@ -571,7 +591,6 @@ def travel_to(index):
     goto_scene(target_scene)
 
 
-IS_IN_HYPERJUMP = False
 
 
 def stop_hyperjump():
@@ -590,8 +609,9 @@ def input(key):
 
     if key == 'space' or key == 'right arrow':
         if IS_IN_HYPERJUMP:
-            print("IS_IN_HYPERJUMP, so don't go to next scene yet")
-            return
+        #     print("IS_IN_HYPERJUMP, so don't go to next scene yet")
+            hyperjump.enabled = False
+        #     return
         
         current_scene = scenes[SCENE_INDEX]
         if not hasattr(current_scene, 'finished'):
@@ -612,7 +632,9 @@ def input(key):
     elif IS_IN_HYPERJUMP and key == 'escape':
         stop_hyperjump()
 
+# SCENE_INDEX = scenes.index(underwater_scene)
+# travel_to(SCENE_INDEX)
+travel_to(0)
 
-print('a')
 </script>
 <script src="sunsnake_compiler.js"></script>
