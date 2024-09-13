@@ -17,11 +17,12 @@ const style = document.createElement('style')
 style.textContent = `
 .entity {
   touch-action: none;
-  width:100%; height:100%; position:absolute; top:50%; left:50%; will-change: transform;
+  width:100%; height:100%; position:absolute; top:50%; left:50%;
   transform:translate(-50%, -50%); color:black; background-size: 100% 100%; padding:0; border-width:0px;
   visibility: 'visible'; display:inherit; image-rendering: auto;
   background-repeat:repeat;
   white-space: pre;
+  will-change: top, left, transform, color, visibility;
 }
 .entity:focus {
   outline: 0; -moz-outline-style: none;
@@ -500,8 +501,7 @@ class Entity {
     set x(value) {
         // this.el.style.left = `${50+(value*100)}%`
         this.el.style.left = `${50+(value*100)}%`
-        print('----', this.el.style.left)
-
+        // print('----', this.el.style.left)
         this._x = value
     }
     get y() {return this._y}

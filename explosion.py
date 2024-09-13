@@ -42,13 +42,18 @@ scale_animation = center_star.animate_scale(center_star.scale*.8, curve=curve.in
 
 moons = []
 for i in range(200):
-    moon = Entity(parent=moon_parent, model='quad', scale=random.uniform(.5,1)*.7, texture='yellow_star', position=random_point_in_sphere(radius=15), billboard=True)
+    moon = Entity(parent=moon_parent, model='quad', scale=random.uniform(.5,1)*.7*.2, texture='small_moon', color='#a192a2', position=random_point_in_sphere(radius=15))
     moons.append(moon)
+    def moon_update(moon=moon):
+        moon.look_at(camera, 'back', up=Vec3.up)
+    moon.update = moon_update
+
+    sparkle = Entity(parent=moon, model='quad', world_scale=random.uniform(.5,1)*.7*10, texture='yellow_star', position=(.25,.25,0), billboard=True)
     target_color = hsv(random.uniform(0,50), .3, 1)
-    moon.color = target_color.tint(-.3)
-    blink_animation = moon.blink(target_color, loop=True, duration=.5, delay=random.uniform(0,.2), curve=curve.out_expo_boomerang)
+    sparkle.color = target_color.tint(-.3)
+    blink_animation = sparkle.blink(target_color, loop=True, duration=.5, delay=random.uniform(0,.2), curve=curve.out_expo_boomerang)
     blink_animation.loop = True
-    scale_animation = moon.animate_scale(moon.scale*.5, curve=curve.out_expo_boomerang, duration=2, delay=random.random())
+    scale_animation = sparkle.animate_scale(sparkle.scale*.5, curve=curve.out_expo_boomerang, duration=2, delay=random.random())
     scale_animation.loop = True
 
 
@@ -82,15 +87,23 @@ explosion = dict(scale=12,
     start_color = (color.white,),
     end_color = (color.light_gray, color.magenta),
     color_curve=curve.out_expo,
-    # num_particles=50,
-    num_particles=1,
+    num_particles=50,
+    # num_particles=1,
     spawn_type = 'burst',
     name='explosion', seed=0,
     # delay=4,
     enabled=False
     )
+
+t = time.perf_counter()
 explosion_particles = ParticleSystem(**explosion)
+print('tttttttttttt', time.perf_counter() - t)
+
 # explosion_particles.bake()
+
+red_star = Entity(parent=bg, z=-1, model='quad', texture='red_star', scale_y=.1*16/9, scale_x=.1, always_on_top=True)
+red_star.animate_scale(red_star.scale*.8, duration=.2, curve=curve.linear_boomerang, loop=True)
+
 
 class Helper(Entity):
     def __init__(self):
@@ -129,6 +142,7 @@ class Helper(Entity):
                     explosion_particles.enable()
                     explosion_particles.play()
                     moon_parent.enable()
+                    red_star.enabled = False
                     bg.animate('y', bg.y+2, loop=True, duration=8, curve=curve.in_out_sine_boomerang)
 
                 # explosion_particles.play()
@@ -146,8 +160,9 @@ class Helper(Entity):
 # camera.shader = fxaa_shader
 Helper()
 window.borderless = True
-window.monitor_index = 1
+# window.monitor_index = 1
 window.size = Vec2(1920,1080)
+window.position = Vec2(0, 0)
 # application.time_scale = 0
 
 

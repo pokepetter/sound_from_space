@@ -16,7 +16,11 @@ title_screen = Scene(name='title_screen', texture='lyden_fra_verdensrommet_banne
 frame = Entity(texture='frame.png', z=-20, scale_x=16/9*1.02, scale_y=1.02)
 
 
-oxygen_meter = HealthBar(position=[.75, .3, -1], rotation=-90, scale_x=.2, scale_y=.03, text_color=color.clear, alpha=.1, bar_color='#c6edf5ee', enabled=False)
+oxygen_meter = HealthBar(position=[.3, 0, -1], rotation=-90, scale_x=.2, scale_y=.03, text_color=color.clear, color=color.gray, alpha=.2, bar_color='#c6edf5ee', enabled=False, t=0)
+oxygen_meter.update = def():
+    oxygen_meter.t += 1/60 * 10
+    oxygen_meter.bar.alpha = .5 + (math.sin(oxygen_meter.t) * .5)
+
 # _ = Button(parent=oxygen_meter, font='Orbitron-Black', text='Konsetrasjon \nper m3 i kabinen\n|\n|\n_', text_origin=[-.5,.5], x=-.45, y=1.2, z=-10, text_color=color.white, color=hsv(0,0,1,.0), text_size=.5, enabled=1, t=0)
 
 gravity_meter = HealthBar(position=[.75+.05, .3, -1], rotation=-90, scale_x=.2, scale_y=.03, text_color=color.clear, alpha=.1, bar_color='#c6edf5ee', enabled=False)
@@ -153,7 +157,7 @@ asteroid_avoidance_scene.overlay = Entity(parent=asteroid_avoidance_scene, scale
 asteroid_parent = Entity(parent=asteroid_avoidance_scene, visible_self=False)
 asteroid_avoidance_scene.bg = Entity(texture='stars_small.png', scale_x=16/9*2, scale_y=2, tileset_size=[.5,.5], parent=asteroid_parent)
 
-set_scale(.75)
+# set_scale(.75)
 asteroids = [Entity(parent=asteroid_parent, texture='asteroid_0.png', scale=0, z=-1) for i in range(5)]
 
 asteroid_avoidance_scene.asteroid_mg = Entity(parent=asteroid_parent, texture='asteroid_field_bg.png', scale_x=16/9*1.1, scale_y=1.1, texture_offset=[0,0])
@@ -179,7 +183,7 @@ asteroid_avoidance_scene.on_enable = def():
         asteroids[i].scale = 0
         asteroids[i].xy = [0,0]
 
-        after i * 4.5 * asteroid_time_scale:
+        after i * 6.5 * asteroid_time_scale:
             direction = -1
             if i%2 == 0:
                 direction = 1
@@ -310,10 +314,13 @@ underwater_scene.input = def input(key):
             # show_warning('&#x26A0;')
 
         elif underwater_scene.i == 2:
+            oxygen_meter.enabled = True
+            oxygen_meter.value = 15
             show_warning('&#x26A0; Kritisk oksygennivå &#x26A0;')
 
         elif underwater_scene.i == 3:
             stop_warning()
+            oxygen_meter.enabled = False
 
         elif underwater_scene.i == 4:
             show_hyperjump_warning()
@@ -390,8 +397,8 @@ mixolydia_centauri_scene.video_frame = Entity(parent=mixolydia_centauri_scene, s
 
 
 alien_video_bg = Button(parent=mixolydia_centauri_scene.video_frame, scale=.75, enabled=False, roundness=.01, texture='stars.png', name='alien_video_bg', texture_offset=[0,0])
-alien_video_bg.update = def():
-    alien_video_bg.texture_offset = [alien_video_bg.texture_offset[0]-.0001, alien_video_bg.texture_offset[1]-.00007]
+# alien_video_bg.update = def():
+#     alien_video_bg.texture_offset = [alien_video_bg.texture_offset[0]-.0001, alien_video_bg.texture_offset[1]-.00007]
 
 alien_video_bg.glitch_effect = Entity(parent=alien_video_bg, z=-1, texture='glitch_effect.gif', alpha=.1)
 
@@ -400,7 +407,7 @@ alien_parent.update = def():
     alien_parent.t += 1/60 * 2
     alien_parent.y = (-.5 + (sin(alien_parent.t) * .025)) * .15
 
-alien_video = Entity(parent=alien_parent, scale=2, y=-.5, texture='alien_animated.gif', roundness=.05, z=-1, alpha=0)
+alien_video = Entity(parent=alien_parent, scale=2, y=-.5, texture='alien_animated.gif', roundness=0, z=-1, alpha=0)
 # alien_video.model.style.overflow = 'hidden'
 alien_video_bg.el.style.overflow = 'hidden'
 
@@ -444,15 +451,12 @@ mixolydia_centauri_scene.input = def input(key):
                 alien_video.animate('alpha', 1, duration=.5)
 
         elif mixolydia_centauri_scene.i == 2:
-            print('show face')
-
-        elif mixolydia_centauri_scene.i == 3:
-            alien_video.animate('scale_x', 1.0, duration=1, curve=curves.in_out_sin)
-            alien_video.animate('scale_y', 1.0, duration=1, curve=curves.in_out_sin)
-            alien_video.animate('y', .05, duration=1, curve=curves.in_out_sin)
+            alien_video.animate('scale_x', 1.0, duration=2, curve=curves.in_out_sin)
+            alien_video.animate('scale_y', 1.0, duration=2, curve=curves.in_out_sin)
+            alien_video.animate('y', .05, duration=2, curve=curves.in_out_sin)
             print('show body')
 
-        elif mixolydia_centauri_scene.i == 4:
+        elif mixolydia_centauri_scene.i == 3:
             print('close video')
             alien_video.animate('alpha', 0, duration=.5)
             alien_video_bg.animate('alpha', 0, duration=.5)
@@ -482,9 +486,6 @@ mixolydia_centauri_scene.input = def input(key):
 
 central_star_explosion_scene = Scene(name='central_star_explosion', texture='mixolydia_centauri.png')
 Entity(parent=central_star_explosion_scene, scale=.2, text='eksplosjon', color=color.clear, text_color=color.gray).fit_to_text()
-
-mixolydia_centauri_with_moons_scene = Scene(name='mixolydia_centauri', texture='mixolydia_centauri')
-# Entity(parent=mixolydia_centauri_with_moons_scene, scale=.2, text='MIXOLYDIA CENTAURI\n+ moons', color=color.clear, text_color=color.gray).fit_to_text()
 
 
 pale_blue_dot_scene = Scene(name='pale_blue_dot')
@@ -632,7 +633,6 @@ underwater_scene,
 gravity_scene, 
 mixolydia_centauri_scene,
 central_star_explosion_scene,
-mixolydia_centauri_with_moons_scene,
 pale_blue_dot_scene, 
 terra_scene, 
 ]
