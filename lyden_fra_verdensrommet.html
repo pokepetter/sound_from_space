@@ -11,6 +11,7 @@ SCENE_INDEX = 0
 IS_IN_HYPERJUMP = False
 
 
+
 title_screen = Scene(name='title_screen', texture='lyden_fra_verdensrommet_banner.png', z=-2)
 frame = Entity(texture='frame.png', z=-20, scale_x=16/9*1.02, scale_y=1.02)
 
@@ -34,6 +35,9 @@ door_top = Entity(parent=camera.ui, texture='airlock_door_top.png', origin=[0,.5
 door_bot = Entity(parent=camera.ui, texture='airlock_door_bottom.png', origin=[0,-.5], scale_x=16/9, scale_y=.5*1., z=-20, closed_position=-.5, open_position=-1.1)
 door_bot.bg = Entity(parent=door_bot, texture='airlock_door_top.png', origin=[0,.5], z=1, y=1, closed_position=1, open_position=1.05)
 
+glitch_effect = Entity(parent=camera.ui, scale_x=16/9, texture='glitch_effect.gif', alpha=.1, enabled=True, z=-21)
+glitch_effect.model.style.mixBlendMode = 'lighten'
+
 launch_scene.on_enable = def():
     door_top.y = door_top.closed_position
     door_bot.y = door_bot.closed_position
@@ -44,16 +48,19 @@ launch_scene.on_exit = def():
     door_top.y = door_top.t = door_top.open_position
     door_bot.y = door_bot.open_position
     door_bot.bg.y = door_bot.bg.open_position
+    glitch_effect.enabled = False
 
 
 launch_scene.input = def input(key):
     if key == 'space':
         if launch_scene.i == 0:
-            door_top.animate('y', door_top.open_position, duration=5, curve=curves.linear)
-            door_bot.animate('y', door_bot.open_position, duration=5, curve=curves.linear)
-            door_bot.bg.animate('y', door_bot.bg.open_position, duration=5, curve=curves.linear)
-            camera.shake(duration=3)
-            sun_far.animate('y', -.3, duration=30)
+            after 1:
+                door_top.animate('y', door_top.open_position, duration=5, curve=curves.linear)
+                door_bot.animate('y', door_bot.open_position, duration=5, curve=curves.linear)
+                door_bot.bg.animate('y', door_bot.bg.open_position, duration=5, curve=curves.linear)
+                camera.shake(duration=3)
+                sun_far.animate('y', -.3, duration=30)
+                glitch_effect.enabled = False
 
         elif launch_scene.i == 1:
             launch_scene.finished = True
@@ -63,7 +70,7 @@ launch_scene.input = def input(key):
 
 sun_scene = Scene(name='sun_scene', texture='stars.png', i=0, finished=False)
 sun = Entity(parent=sun_scene, texture='sun_bloom.gif', scale=16/9)
-waveform_bg = Entity(parent=sun_scene, scale=[.6*.75,.15*.75], roundness=.1, z=-1, color=hsv(210,1,.3), alpha=1, texture='scifi_frame')
+waveform_bg = Entity(parent=sun_scene, scale=[.6*.75,.3*.75], roundness=.1, z=-1, color=hsv(210,1,.3), alpha=1, texture='scifi_frame_2_1.png')
 waveform = Entity(parent=sun_scene, texture='waveform_2.gif', scale=[.5*.75,.15*.75], roundness=.1, z=-1, y=0, x=0)
 
 sun_scene.on_enable = def():
@@ -80,7 +87,7 @@ sun_scene.input = def input(key):
             waveform.alpha = 0
             waveform_bg.enabled = True
             waveform.enabled = True
-            waveform_bg.animate('scale_y', .15*.75, duration=.2)
+            waveform_bg.animate('scale_y', .2*.75, duration=.2)
             after .1:
                 waveform_bg.animate('scale_x', .6*.75, duration=.5)
                 after .5:
@@ -89,9 +96,7 @@ sun_scene.input = def input(key):
         elif sun_scene.i == 1:
             waveform.animate('alpha', 0, duration=1)
             after .5:
-                waveform_bg.animate('scale_x', 0, duration=.5)
-                after .5:
-                    waveform_bg.animate('scale_y', 0, duration=.5)
+                waveform_bg.close()
             print('close waveform. sun scene finshed')
         
         elif sun_scene.i == 2:
@@ -101,8 +106,8 @@ sun_scene.input = def input(key):
     # show_info(title='Sol', description='', character_duration=.2)
 
 iss_scene = Scene(name='ISS_scene', texture='stars_small.png', i=0, finished=False)
-iss_scene.video_frame = Entity(parent=iss_scene, scale=[.8*16/9,.8], y=.1, texture='scifi_frame', enabled=False)
-iss_video = Button(parent=iss_scene.video_frame, scale=.8, text='ISS-video', enabled=False, roundness=.01)
+iss_scene.video_frame = Entity(parent=iss_scene, scale=[.9*16/9,.9], y=.1, texture='scifi_frame_2_1', enabled=False)
+iss_video = Button(parent=iss_scene.video_frame, scale=.6, text='ISS-video', enabled=False, roundness=.01)
 iss_scene.on_enable = def():
     iss_scene.video_frame.enabled = False
     # video_frame.scale = .7
@@ -148,17 +153,21 @@ asteroid_avoidance_scene.overlay = Entity(parent=asteroid_avoidance_scene, scale
 asteroid_parent = Entity(parent=asteroid_avoidance_scene, visible_self=False)
 asteroid_avoidance_scene.bg = Entity(texture='stars_small.png', scale_x=16/9*2, scale_y=2, tileset_size=[.5,.5], parent=asteroid_parent)
 
-set_scale(.5)
-asteroids = [Entity(parent=asteroid_parent, texture='asteroid_0.png', scale=0, x=i%2, z=-1) for i in range(1)]
+set_scale(.75)
+asteroids = [Entity(parent=asteroid_parent, texture='asteroid_0.png', scale=0, z=-1) for i in range(5)]
+
 asteroid_avoidance_scene.asteroid_mg = Entity(parent=asteroid_parent, texture='asteroid_field_bg.png', scale_x=16/9*1.1, scale_y=1.1, texture_offset=[0,0])
 asteroid_avoidance_scene.asteroid_mg = Entity(parent=asteroid_parent, texture='asteroid_field_mg.png', scale_x=16/9*1.1, scale_y=1.1, x=.7, rotation=-45, texture_offset=[0,0])
 asteroid_avoidance_scene.asteroid_mg2 = Entity(parent=asteroid_parent, texture='asteroid_field_mg.png', scale_x=16/9*1.1, scale_y=1.1, x=-.7,y=.2, rotation=0, texture_offset=[0,0])
 
+;
 asteroid_warning = Entity(parent=asteroid_avoidance_scene, scale=.2, texture='asteroid_warning.png', t=0, enabled=False)
 asteroid_warning.update = def():
     asteroid_warning.t += 1/60 * 8
     asteroid_warning.alpha = .5 + (math.sin(asteroid_warning.t) * .25)
 
+asteroid_time_scale = 2
+num_asteroids = len(asteroids)
 
 asteroid_avoidance_scene.on_enable = def():
     asteroid_avoidance_scene.spin = False
@@ -166,45 +175,45 @@ asteroid_avoidance_scene.on_enable = def():
     asteroid_avoidance_scene.overlay.alpha = 0
     asteroid_warning.enabled = False
 
-    for i, e in asteroids:
-        e.scale = 0
-        e.xy = [0,0]
+    for i, e in range(num_asteroids):
+        asteroids[i].scale = 0
+        asteroids[i].xy = [0,0]
 
-        after i * 4.5:
+        after i * 4.5 * asteroid_time_scale:
             direction = -1
             if i%2 == 0:
                 direction = 1
-            if i < len(asteroids)-1:
-                asteroids[i].animate('scale_x', 4, duration=5, curve=curves.in_expo)
-                asteroids[i].animate('scale_y', 4, duration=5, curve=curves.in_expo)
+            if i < num_asteroids-1:
+                asteroids[i].animate('scale_x', 4, duration=5*asteroid_time_scale, curve=curves.in_expo)
+                asteroids[i].animate('scale_y', 4, duration=5*asteroid_time_scale, curve=curves.in_expo)
             else:
-                asteroids[i].animate('scale_x', 8, duration=5, curve=curves.in_expo)
-                asteroids[i].animate('scale_y', 8, duration=5, curve=curves.in_expo)
+                asteroids[i].animate('scale_x', 8, duration=5*asteroid_time_scale, curve=curves.in_expo)
+                asteroids[i].animate('scale_y', 8, duration=5*asteroid_time_scale, curve=curves.in_expo)
             
-            asteroids[i].animate('rotation', 180*direction, duration=5, curve=curves.linear)
-            after 2.5:
-                asteroid_parent.animate('x', .05*direction, duration=2, curve=curves.in_out_expo)
+            asteroids[i].animate('rotation', 180*direction, duration=5*asteroid_time_scale, curve=curves.linear)
+            after 2.5*asteroid_time_scale:
+                asteroid_parent.animate('x', .05*direction, duration=2*asteroid_time_scale, curve=curves.in_out_expo)
                 asteroid_warning.enabled = True
                 asteroid_warning.xy = asteroids[i].xy
                 
-                if i < len(asteroids)-1:
+                if i < num_asteroids-1:
                     direction = -1
                     if i%2 == 0:
                         direction = 1
-                    asteroid_parent.animate('rotation', -5*direction, duration=2, curve=curves.linear)
-                    asteroids[i].animate('x', 5*direction, duration=2, curve=curves.in_expo)
-                    asteroids[i].animate('y', -.5*direction, duration=2, curve=curves.in_expo)
-                    asteroid_avoidance_scene.asteroid_mg.animate('x', .7+(.05*direction), duration=2, curve=curves.linear)
-                    asteroid_avoidance_scene.asteroid_mg2.animate('x', -.7+(.05*direction), duration=2, curve=curves.linear)
-                    asteroid_warning.animate('x', 5*direction, duration=2, curve=curves.in_expo)
-                    asteroid_warning.animate('y', -.5*direction, duration=2, curve=curves.in_expo)
+                    asteroid_parent.animate('rotation', -5*direction, duration=2*asteroid_time_scale, curve=curves.linear)
+                    asteroids[i].animate('x', 5*direction, duration=2*asteroid_time_scale, curve=curves.in_expo)
+                    asteroids[i].animate('y', -.5*direction, duration=2*asteroid_time_scale, curve=curves.in_expo)
+                    asteroid_avoidance_scene.asteroid_mg.animate('x', .7+(.05*direction), duration=2*asteroid_time_scale, curve=curves.linear)
+                    asteroid_avoidance_scene.asteroid_mg2.animate('x', -.7+(.05*direction), duration=2*asteroid_time_scale, curve=curves.linear)
+                    asteroid_warning.animate('x', 5*direction, duration=2*asteroid_time_scale, curve=curves.in_expo)
+                    asteroid_warning.animate('y', -.5*direction, duration=2*asteroid_time_scale, curve=curves.in_expo)
                     
-                    after 2:
+                    after 2*asteroid_time_scale:
                         asteroid_warning.enabled = False
-                        asteroid_parent.animate('rotation', 0, duration=2, curve=curves.linear)
-                        asteroid_parent.animate('x', 0, duration=2, curve=curves.linear)
-                        asteroid_avoidance_scene.asteroid_mg.animate('x', .7, duration=2, curve=curves.linear)
-                        asteroid_avoidance_scene.asteroid_mg2.animate('x', -.7, duration=2, curve=curves.linear)
+                        asteroid_parent.animate('rotation', 0, duration=2*asteroid_time_scale, curve=curves.linear)
+                        asteroid_parent.animate('x', 0, duration=2*asteroid_time_scale, curve=curves.linear)
+                        asteroid_avoidance_scene.asteroid_mg.animate('x', .7, duration=2*asteroid_time_scale, curve=curves.linear)
+                        asteroid_avoidance_scene.asteroid_mg2.animate('x', -.7, duration=2*asteroid_time_scale, curve=curves.linear)
                 else:
                     after 1:
                         asteroid_warning.enabled = False
@@ -212,6 +221,7 @@ asteroid_avoidance_scene.on_enable = def():
                         asteroid_avoidance_scene.spin = True
                         asteroids[i].enabled = False
                         camera.shake(duration=.5)
+                        glitch_effect.enabled = True
                         
                         after .2:
                             camera.overlay.animate('alpha', 0, duration=.3)
@@ -224,7 +234,9 @@ asteroid_avoidance_scene.on_enable = def():
                             asteroid_avoidance_scene.overlay.animate('alpha', 1, duration=2)
                             after 2:
                                 asteroid_avoidance_scene.spin = False
+                                glitch_effect.enabled = False
                                 asteroid_avoidance_scene.finished = True
+                                
         
         
 asteroid_avoidance_scene.update = def():
@@ -274,14 +286,14 @@ underwater_scene = Scene(name='underwater_scene', texture='underwater_2.png', i=
 underwater_graphics = Entity(parent=underwater_scene, texture='underwater_2.png', scale_x=16/9, texture_offset=[0,0])
 underwater_cover = Entity(parent=underwater_scene, scale=2, color=color.black, z=-2)
 ice_effect = Entity(parent=underwater_scene, scale_x=16/9, texture='freeze_effect.png', z=-1, alpha=1)
-underwater_eye = Entity(parent=underwater_graphics, scale=.1, xy=[-.05,.1], text='👁️', text_size=2, text_origin=[0,0], color=hsv(0,0,.2,.5), enabled=False)
+eye = Entity(parent=underwater_graphics, scale=[512/1920, 256/1080], xy=[(-146/1920),(110/1080)], texture='eye_open.gif', enabled=0)
 underwater_scene.on_enable = def():
     underwater_graphics.y = -.1
     underwater_graphics.animate('y', 0, duration=30, curve=curves.out_expo)
     underwater_cover.alpha = 1
     underwater_cover.animate('alpha', 0, duration=10)
     ice_effect.alpha = 0
-    underwater_eye.enabled = False
+    eye.enabled = False
 
     after 2:
         ice_effect.animate('alpha', 1, duration=10)
@@ -290,10 +302,12 @@ underwater_scene.input = def input(key):
     if key == 'space':
         if underwater_scene.i == 0:
             print('open eye')
-            underwater_eye.enabled = True
+            eye.enabled = True
+            eye.texture = 'eye_open.gif'
         
         elif underwater_scene.i == 1:
-            show_warning('&#x26A0;')
+            eye.texture = 'eye_close.gif'
+            # show_warning('&#x26A0;')
 
         elif underwater_scene.i == 2:
             show_warning('&#x26A0; Kritisk oksygennivå &#x26A0;')
@@ -312,17 +326,20 @@ underwater_scene.input = def input(key):
 
 
 
-warning = Button(font='Orbitron-Black', text='&#x26A0; Advarsel &#x26A0;\nLav gravitasjon', z=-2, text_color=color.white, color=hsv(0,.9,.8,.5), padding=[1,1], roundness=.02, enabled=False, t=0)
+warning = Button(font='Orbitron-Black', text='&#x26A0; Advarsel &#x26A0;\nLav gravitasjon', z=-2, text_color=color.white, texture='scifi_frame_2_1_red.png', padding=[1.25,1.25], roundness=.02, enabled=False, t=0)
 warning.update = def _():
     warning.t += 1/60 * 8
     warning.alpha = .5 + (math.sin(warning.t) * .25)
         
 def show_warning(text, box_color=hsv(0,.9,.8,.5)):
+    warning.texture = 'scifi_frame_2_1_red.png'
     warning.t = 0
     warning.enabled = True
-    warning.color = box_color
+    # warning.color = box_color
     warning.text = text
     warning.fit_to_text()
+    warning.scale_y *= 1.1
+    warning.scale_x *= 1.1
     target_scale_x = warning.scale_x
     warning.scale_x = .05
     warning.animate('scale_x', target_scale_x, duration=1)
@@ -335,6 +352,7 @@ def stop_warning():
 def show_hyperjump_warning():
     print('show hyperjump warning')
     show_warning('Starter hyperhopp...', color.azure)
+    warning.texture = 'scifi_frame_2_1.png'
 
 gravity_scene = Scene(name='gravity_scene', i=0, finished=False)
 gravity_scene.stars = Entity(parent=gravity_scene, texture='stars.png', scale_x=16/9, texture_offset=[0,0])
@@ -375,16 +393,14 @@ alien_video_bg = Button(parent=mixolydia_centauri_scene.video_frame, scale=.75, 
 alien_video_bg.update = def():
     alien_video_bg.texture_offset = [alien_video_bg.texture_offset[0]-.0001, alien_video_bg.texture_offset[1]-.00007]
 
-mixolydia_centauri_scene.on_enable = def():
-    mixolydia_centauri_scene.video_frame.enabled = False
-    alien_video_bg.alpha = 0
+alien_video_bg.glitch_effect = Entity(parent=alien_video_bg, z=-1, texture='glitch_effect.gif', alpha=.1)
 
 alien_parent = Entity(parent=alien_video_bg, visible_self=False, t=0)
 alien_parent.update = def():
     alien_parent.t += 1/60 * 2
     alien_parent.y = (-.5 + (sin(alien_parent.t) * .025)) * .15
 
-alien_video = Entity(parent=alien_parent, scale=2, y=-.5, texture='LaV_AlienDesign2.2.png', roundness=.05, z=-1, alpha=0)
+alien_video = Entity(parent=alien_parent, scale=2, y=-.5, texture='alien_animated.gif', roundness=.05, z=-1, alpha=0)
 # alien_video.model.style.overflow = 'hidden'
 alien_video_bg.el.style.overflow = 'hidden'
 
@@ -396,6 +412,9 @@ red_star.update = def():
     red_star.scale_y = (.75 + (sin(red_star.t) * .025)) * .15 * 16/9
 
 mixolydia_centauri_scene.on_enable = def():
+    mixolydia_centauri_scene.video_frame.enabled = False
+    alien_video_bg.alpha = 0
+
     mixolydia.y = .3
     mixolydia.x = .2
     mixolydia.rotation = -5
@@ -411,6 +430,7 @@ mixolydia_centauri_scene.input = def input(key):
     if key == 'space':
         if mixolydia_centauri_scene.i == 0:
             show_warning('Innkommende signal...\nAksepter?\n[Nei] [Ja]')
+            warning.texture = 'scifi_frame_2_1.png'
         
         elif mixolydia_centauri_scene.i == 1:
             stop_warning()
@@ -429,7 +449,7 @@ mixolydia_centauri_scene.input = def input(key):
         elif mixolydia_centauri_scene.i == 3:
             alien_video.animate('scale_x', 1.0, duration=1, curve=curves.in_out_sin)
             alien_video.animate('scale_y', 1.0, duration=1, curve=curves.in_out_sin)
-            alien_video.animate('y', -.1, duration=1)
+            alien_video.animate('y', .05, duration=1, curve=curves.in_out_sin)
             print('show body')
 
         elif mixolydia_centauri_scene.i == 4:

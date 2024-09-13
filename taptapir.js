@@ -498,7 +498,9 @@ class Entity {
     }
     get x() {return this._x}
     set x(value) {
+        // this.el.style.left = `${50+(value*100)}%`
         this.el.style.left = `${50+(value*100)}%`
+        print('----', this.el.style.left)
 
         this._x = value
     }
