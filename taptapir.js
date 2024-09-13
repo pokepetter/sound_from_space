@@ -272,6 +272,18 @@ curves = {
     },
     'in_expo' : (t) => {
         return pow(2, 10 * (t - 1))
+    },
+    'in_out_expo' : (t) => {
+        scaledTime = t * 2
+        scaledTime1 = scaledTime - 1
+
+        if (scaledTime < 1) {
+            return .5 * pow(2, 10 * scaledTime1)
+        }
+        return .5 * (-pow(2, -10 * scaledTime1) + 2)
+    },
+    'in_out_sine' : (t) => {
+        return -.5 * (cos(pi * t) - 1)
     }
 }
 
@@ -340,6 +352,7 @@ class Entity {
         this.y = 0
         this.z = 0
         this.scale = [1,1]
+        this.rotation = 0
         this.draggable = false
         this.dragging = false
         this.lock_x = false
@@ -523,7 +536,7 @@ class Entity {
     get rotation() {return this._rotation}
     set rotation(value) {
         this._rotation = value
-        this.el.style.transform = `translate(-50%, -50%) rotate(${value}deg)`
+        this.el.style.transform = `translate(-50%, -50%) rotateZ(${value}deg)`
     }
 
     get texture() {return this._texture}
@@ -742,7 +755,12 @@ class Entity {
                             return false}
                         var t = i / duration / 60
                         if (typeof curve === 'function') {
-                            entity[variable_name] = lerp(start_value, target_value, curve(t))
+                            if (variable_name != 'rotation') {
+                                entity[variable_name] = lerp(start_value, target_value, curve(t))
+                            }
+                            else {
+                                entity[variable_name] = lerp_angle(start_value, target_value, curve(t))
+                            }
                         }
                         else {
                             // fallback to linear
@@ -771,10 +789,18 @@ class Entity {
         let target_text_alpha = this.text_alpha
         this.scale = [0,0]
         this.text_alpha = 0
+        this.enabled = True
         this.animate('scale_y', target_scale_y, .25)
         after(.25, () => {
             this.animate('scale_x', target_scale_x, .5)
             this.animate('text_alpha', target_text_alpha, .25)
+        })
+    }
+    close() {
+        this.animate('text_alpha', 0, .25)
+        this.animate('scale_y', 0, .25)
+        after(.25, () => {
+            this.animate('scale_x', 0, .5)
         })
     }
 
@@ -811,6 +837,15 @@ async function check_image(url){
 function lerp(a, b, t) {
     return ((1-t)*a) + (t*b)
 }
+function lerp_angle(start_angle, end_angle, t) {
+    start_angle = start_angle % 360
+    end_angle = end_angle % 360
+    let angle_diff = (end_angle - start_angle + 180) % 360 - 180
+    let result_angle = start_angle + t * angle_diff
+    result_angle = (result_angle + 360) % 360
+    return result_angle
+}
+
 function clamp(num, min, max) {
   return num <= min ? min : num >= max ? max : num;
 }

@@ -87,7 +87,7 @@ class Helper(Entity):
                 # explosion_particles.play()
                 # explosion_particles = ParticleSystem(**explosion)
 
-            invoke(_, delay=4)
+            invoke(_, delay=3.5)
 
             window.borderless = True
             window.size = Vec2(1920,1080)
